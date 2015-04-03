@@ -3,4 +3,10 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="error_detected">Is there no tag?</string>
+    <string name="ok_writing">All is good</string>
+    <string name="error_writing">Cannot write to tag...</string>
+    <string name="preference_file_key">com.briankhuu.nfcmessageboard.userpref</string>
+    <string name="defaultnick" />
+    <string name="edit_nick">Nickname</string>
 </resources>
