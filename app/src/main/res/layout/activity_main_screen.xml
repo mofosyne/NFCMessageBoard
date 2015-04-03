@@ -1,73 +1,70 @@
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainScreen">
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainScreen"
+    android:orientation="vertical"
+    android:weightSum="1">
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/edit_msg"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
         android:inputType="none"
-        android:hint="Your Message Here" />
+        android:hint="@string/edit_message" />
 
-    <EditText
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/edit_name"
-        android:hint="@string/edit_nick"
-        android:layout_below="@+id/edit_msg"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/button"
-        android:layout_toStartOf="@+id/button" />
+        android:layout_gravity="center_horizontal"
+        android:weightSum="1">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Add Msg"
-        android:id="@+id/button"
-        android:layout_alignBottom="@+id/edit_name"
-        android:layout_alignRight="@+id/edit_msg"
-        android:layout_alignEnd="@+id/edit_msg"
-        android:onClick="addMsgButton" />
+        <EditText
+            android:layout_width="178dp"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/edit_name"
+            android:hint="@string/edit_nick" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Msg"
+            android:id="@+id/button"
+            android:onClick="addMsgButton"
+            android:layout_weight="0.88" />
+    </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="To add your message. Place the phone to the NFC tag and press &quot;ADD MSG&quot;."
+        android:text="@string/info"
         android:id="@+id/textView"
-        android:layout_below="@+id/edit_name"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
         android:textIsSelectable="false"
         android:textStyle="bold" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Please Scan"
-        android:id="@+id/textView_maindisplay"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true" />
+        android:text="@string/output_display"
+        android:id="@+id/textView_maindisplay"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView_info"
+        android:layout_weight="1.30"
+        android:textStyle="bold" />
 
 
-</RelativeLayout>
+</LinearLayout>
 </ScrollView>

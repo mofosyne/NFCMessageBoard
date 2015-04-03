@@ -9,4 +9,7 @@
     <string name="preference_file_key">com.briankhuu.nfcmessageboard.userpref</string>
     <string name="defaultnick" />
     <string name="edit_nick">Nickname</string>
+    <string name="edit_message">Your Message Here</string>
+    <string name="info">To add your message. Place the phone to the NFC tag and press \"ADD MSG\".</string>
+    <string name="output_display">Please Scan</string>
 </resources>
