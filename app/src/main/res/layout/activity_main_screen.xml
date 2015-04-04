@@ -13,11 +13,24 @@
     android:orientation="vertical"
     android:weightSum="1">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/info"
+        android:id="@+id/textView"
+        android:textIsSelectable="false"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="352dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView_info" />
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/edit_msg"
-        android:inputType="none"
+        android:inputType="textShortMessage"
         android:hint="@string/edit_message" />
 
     <LinearLayout
@@ -47,21 +60,14 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/info"
-        android:id="@+id/textView"
-        android:textIsSelectable="false"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:text="@string/output_display"
-        android:id="@+id/textView_maindisplay"/>
+        android:id="@+id/textView_maindisplay"
+        android:autoLink="web|map|email" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView_info"
+        android:id="@+id/textView_taginfo"
         android:layout_weight="1.30"
         android:textStyle="bold" />
 
