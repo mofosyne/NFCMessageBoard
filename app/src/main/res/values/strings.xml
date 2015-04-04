@@ -10,6 +10,10 @@
     <string name="defaultnick" />
     <string name="edit_nick">Nickname</string>
     <string name="edit_message">Your Message Here</string>
-    <string name="info">Tap to read NFC tag. Tap and press \"ADD MSG\" to add your message.( Tips: email, links, and map address are autolinked )</string>
+    <string name="info">Tap to read NFC tag. Tap and press \"ADD MSG\" to add your message.</string>
     <string name="output_display">Please Scan</string>
+    <string name="locked_tag">Read Only Tag Detected</string>
+    <string name="writable_tag">Tag Detected</string>
+    <string name="infoDisp_writable">Tag is writable. Remember... be succinct!</string>
+    <string name="infoDisp_locked">Note: Tag is locked. Read only.</string>
 </resources>
