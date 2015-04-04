@@ -1,6 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainScreen">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
+    <item android:id="@+id/creating_a_tag" android:title="@string/tag_create"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/about" android:title="@string/menu_about"
         android:orderInCategory="100" app:showAsAction="never" />
 </menu>

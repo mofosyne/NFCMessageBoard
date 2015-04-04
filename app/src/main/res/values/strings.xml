@@ -5,15 +5,19 @@
     <string name="action_settings">Settings</string>
     <string name="error_detected"> :/ Is there no tag? </string>
     <string name="ok_writing">:D Message Posted! Tap to verify!</string>
-    <string name="error_writing">D: Cannot Write To Tag</string>
+    <string name="error_writing">D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG)</string>
     <string name="preference_file_key">com.briankhuu.nfcmessageboard.userpref</string>
     <string name="defaultnick" />
     <string name="edit_nick">Nickname</string>
     <string name="edit_message">Your Message Here</string>
-    <string name="info">Tap to read NFC tag. Tap and press \"ADD MSG\" to add your message.</string>
+    <string name="info">Tap to read tag. Tap \"ADD MSG\" to post.</string>
     <string name="output_display">Please Scan</string>
     <string name="locked_tag">Read Only Tag Detected</string>
     <string name="writable_tag">Tag Detected</string>
     <string name="infoDisp_writable">Tag is writable. Remember... be succinct!</string>
     <string name="infoDisp_locked">Note: Tag is locked. Read only.</string>
+    <string name="menu_about">about</string>
+    <string name="menu_readme">readme</string>
+    <string name="tag_create">Create A MessageBoard Tag</string>
+    <string name="enable_timestamp">Enable Timestamp</string>
 </resources>

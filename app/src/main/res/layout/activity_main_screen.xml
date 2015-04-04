@@ -57,6 +57,13 @@
             android:layout_weight="0.88" />
     </LinearLayout>
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/enable_timestamp"
+        android:id="@+id/enable_timestamp"
+        android:checked="false" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
