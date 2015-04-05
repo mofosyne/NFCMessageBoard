@@ -14,7 +14,7 @@
     <string name="output_display">Please Scan</string>
     <string name="locked_tag">Read Only Tag Detected</string>
     <string name="writable_tag">Tag Detected</string>
-    <string name="infoDisp_writable">Tag is writable. Remember... be succinct!</string>
+    <string name="infoDisp_writable">Tag is writable. Emoticons is encouraged :D </string>
     <string name="infoDisp_locked">Note: Tag is locked. Read only.</string>
     <string name="menu_about">about</string>
     <string name="menu_readme">readme</string>
