@@ -494,7 +494,7 @@ public class MainScreen extends ActionBarActivity {
             case R.id.creating_a_tag:
                 new AlertDialog.Builder(this)
                         .setTitle("Creating A Tag")
-                        .setMessage("Get an NFC tag with 1kb of space like NTAG216. Then use 'Dangerous NFC' app from 'Dangerous Things' to disable writelock to the tag (Please use 1234 as your password). Then place an empty NFC text record with at least 1 character (1 space). Now your tag is ready to use as a messageboard!!")
+                        .setMessage(getString(R.string.tag_creation))
                         .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 // TODO Add your code for the button here.
@@ -506,7 +506,7 @@ public class MainScreen extends ActionBarActivity {
             case R.id.about:
                 new AlertDialog.Builder(this)
                         .setTitle("About")
-                        .setMessage("This is an app to allow for offline messaging via a single writable NFC tag. Written By Brian Khuu . Licenced as GNU General Public License v2.0 . https://github.com/mofosyne/NFCMessageBoard ")
+                        .setMessage(getString(R.string.about_app))
                         .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 // TODO Add your code for the button here.
