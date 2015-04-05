@@ -20,7 +20,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
+//import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -270,11 +270,12 @@ public class MainScreen extends ActionBarActivity {
                     // 0 (via absolute value) < valid entry size < Max Tag size
                 final int NDEF_RECORD_HEADER_SIZE = 6;
                 final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;
-                int maxTagStringLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE);
-                if (new_entry.length() < maxTagStringLength ){ // Write like normal if content to write will fit without modification
+                int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE);
+                if (new_entry.length() < maxTagByteLength ){ // Write like normal if content to write will fit without modification
                     //
                 } else { // Else work out what to remove. For now, just do a dumb trimming.
-                    new_entry = new_entry.substring(0, maxTagStringLength);
+                    // Unicode characters may take more than 1 byte.
+                    new_entry = truncateWhenUTF8(new_entry, maxTagByteLength);
                 }
                 // Write to tag
                 write(new_entry,tag);
@@ -290,6 +291,42 @@ public class MainScreen extends ActionBarActivity {
             e.printStackTrace();
         }
 
+    }
+
+
+    // http://stackoverflow.com/questions/119328/how-do-i-truncate-a-java-string-to-fit-in-a-given-number-of-bytes-once-utf-8-en
+    public static String truncateWhenUTF8(String s, int maxBytes) {
+        int b = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+
+            // ranges from http://en.wikipedia.org/wiki/UTF-8
+            int skip = 0;
+            int more;
+            if (c <= 0x007f) {
+                more = 1;
+            }
+            else if (c <= 0x07FF) {
+                more = 2;
+            }
+            else if (c <= 0xd7ff) {
+                more = 3;
+            }
+            else if (c <= 0xDFFF) {
+                // surrogate area, consume next char as well
+                more = 4;
+                skip = 1;
+            } else {
+                more = 3;
+            }
+
+            if (b + more > maxBytes) {
+                return s.substring(0, i);
+            }
+            b += more;
+            i += skip;
+        }
+        return s;
     }
 
     /*
@@ -326,7 +363,7 @@ public class MainScreen extends ActionBarActivity {
                 tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
                 new NdefReaderTask().execute(tag);
             } else {
-                Log.d(TAG, "Wrong mime type: " + type);
+                //Log.d(TAG, "Wrong mime type: " + type);
             }
 
         } else if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
@@ -519,7 +556,7 @@ public class MainScreen extends ActionBarActivity {
                     try {
                         return readText(ndefRecord);
                     } catch (UnsupportedEncodingException e) {
-                        Log.e(TAG, "Unsupported Encoding", e);
+                        //Log.e(TAG, "Unsupported Encoding", e);
                     }
                 }
             }
