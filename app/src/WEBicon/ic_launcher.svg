@@ -16,9 +16,9 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="ic_launcher.svg"
-   inkscape:export-filename="C:\Users\simone\Documents\GitHub\NFCMessageBoard\app\src\main\res\mipmap-hdpi\ic_launcher.png"
-   inkscape:export-xdpi="12.96"
-   inkscape:export-ydpi="12.96">
+   inkscape:export-filename="C:\Users\simone\Documents\GitHub\NFCMessageBoard\app\src\WEBicon\ic_launcher.png"
+   inkscape:export-xdpi="92.160004"
+   inkscape:export-ydpi="92.160004">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -37,7 +37,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="23.644151"
+     inkscape:cx="-278.39146"
      inkscape:cy="228.68554"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -61,7 +61,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
