@@ -16,9 +16,9 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="NFCBBS_marker.svg"
-   inkscape:export-filename="C:\Users\simone\Documents\GitHub\NFCMessageBoard\app\src\WEBicon\NFCBBSMarker.png"
-   inkscape:export-xdpi="92.160004"
-   inkscape:export-ydpi="92.160004">
+   inkscape:export-filename="C:\Users\simone\Documents\GitHub\NFCMessageBoard\app\src\main\res\mipmap-xxhdpi\ic_launcher.png"
+   inkscape:export-xdpi="25.92"
+   inkscape:export-ydpi="25.92">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -50,7 +50,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.9899495"
-     inkscape:cx="156.9114"
+     inkscape:cx="5.8935956"
      inkscape:cy="218.4053"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
