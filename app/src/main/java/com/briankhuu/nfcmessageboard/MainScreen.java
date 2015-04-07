@@ -208,8 +208,12 @@ public class MainScreen extends ActionBarActivity {
         add_message();
     }
 
-    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
 
+    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
+        /*
+            Note: might want to use "NdefRecord createTextRecord (String languageCode, String text)" instead from NdefRecord.createTextRecord()
+
+         */
         //create the message in according with the standard
         String lang = "en";
         byte[] textBytes = text.getBytes();
@@ -229,9 +233,33 @@ public class MainScreen extends ActionBarActivity {
     }
 
     private void write(String text, Tag tag) throws IOException, FormatException {
+        /*
+         http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
+          */
+        // We want to include a reference to the app, for those who don't have one.
+        String arrPackageName = "com.briankhuu.nfcmessageboard";
+        //NdefRecord aarNdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
+        // Assess the size of tag
+        //int AAR_RECORD_BYTE_LENGTH = 6+4+arrPackageName.length();
+        final int AAR_RECORD_BYTE_LENGTH = 50; // I guess i suck at byte counting. well at least this should still work. This approach does lead to wasted space however.
 
-        NdefRecord[] records = { createRecord(text) };
-        NdefMessage message = new NdefMessage(records);
+        // Trim to size (for now this is just a dumb trimmer...) (Later on, you want to remove whole post first
+        // Seem that header and other things takes 14 chars. For safety. Lets just remove 20.
+        // 0 (via absolute value) < valid entry size < Max Tag size
+        final int NDEF_RECORD_HEADER_SIZE = 6;
+        final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;
+        int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
+        if (text.length() >= maxTagByteLength ){ // Write like normal if content to write will fit without modification
+            // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
+            text = truncateWhenUTF8(text, maxTagByteLength);
+        }
+
+        // Write tag
+        //NdefRecord[] records = { createRecord(text), aarNdefRecord };
+        NdefMessage message = new NdefMessage(new NdefRecord[]{
+                createRecord(text)
+                ,NdefRecord.createApplicationRecord(arrPackageName)
+        });
         Ndef ndef = Ndef.get(tag);
         ndef.connect();
         ndef.writeNdefMessage(message);
@@ -263,20 +291,14 @@ public class MainScreen extends ActionBarActivity {
                 } else {
                     dateStamp_entry = "";
                 }
-                // Construct text
-                new_entry = entry_msg.getText().toString()+"\n[~:"+entry_name.getText().toString()+dateStamp_entry+"]\n\n" + mTextView.getText().toString();
-                // Trim to size (for now this is just a dumb trimmer...) (Later on, you want to remove whole post first
-                    // Seem that header and other things takes 14 chars. For safety. Lets just remove 20.
-                    // 0 (via absolute value) < valid entry size < Max Tag size
-                final int NDEF_RECORD_HEADER_SIZE = 6;
-                final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;
-                int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE);
-                if (new_entry.length() < maxTagByteLength ){ // Write like normal if content to write will fit without modification
-                    //
-                } else { // Else work out what to remove. For now, just do a dumb trimming.
-                    // Unicode characters may take more than 1 byte.
-                    new_entry = truncateWhenUTF8(new_entry, maxTagByteLength);
-                }
+                // Calling the labels again manually (Just in case it dissapears for some reason (This is a hack? Its to avoid " W/Editor﹕ GetLabel fail! Do framework orig behavior" which causes the field to be empty )
+                entry_msg = (TextView)findViewById(R.id.edit_msg);
+                entry_name = (TextView)findViewById(R.id.edit_name);
+                // Get the text
+                String message = entry_msg.getText().toString();
+                String nick = entry_name.getText().toString();
+                 // Construct text
+                new_entry = message+"\n[~:"+nick+dateStamp_entry+"]\n\n" + mTextView.getText().toString();
                 // Write to tag
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.
@@ -284,10 +306,10 @@ public class MainScreen extends ActionBarActivity {
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             }
         } catch (IOException e) {
-            Toast.makeText(ctx, ctx.getString(R.string.error_writing), Toast.LENGTH_LONG ).show();
+            Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG) (type:IO)", Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         } catch (FormatException e) {
-            Toast.makeText(ctx, ctx.getString(R.string.error_writing) , Toast.LENGTH_LONG ).show();
+            Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG)(type:Format)" , Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         }
 
