@@ -6,7 +6,7 @@
     <!-- Tutorial used: "Reading NFC Tags with Android, by Ralf Wondratschek 2013" -->
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature    android:name="android.hardware.nfc"      android:required="true" />
-
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <!--windowwSoftInputMode http://stackoverflow.com/questions/1555109/stop-edittext-from-gaining-focus-at-activity-startup-->
 
     <application

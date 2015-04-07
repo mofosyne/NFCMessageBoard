@@ -15,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.nfc.NfcAdapter;
 
+import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -97,12 +98,18 @@ public class MainScreen extends ActionBarActivity {
     //timestamp setting
     public static CheckBox CheckBox_enable_timestamp;
 
+    // Vibrate
+    Vibrator vibrator;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);              // Saves the session
         setContentView(R.layout.activity_main_screen);   // Start the main activity (The GUI display)
 
         ctx = this;
+
+        //setup vibrate
+        vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         // Setup the Write Tag Interface
         entry_msg = (TextView)findViewById(R.id.edit_msg);
@@ -205,7 +212,11 @@ public class MainScreen extends ActionBarActivity {
         // I think for now, just assume that the tag read is the current content.
         // Which is made easier by the fact that this app already auto read the tag on touch.
         //Toast.makeText(ctx, ":D", Toast.LENGTH_LONG ).show();
-        add_message();
+
+        infoDisp.setText("Please Tap To Write Your Message");
+        armed_nfc_write = true;
+
+        //add_message();
     }
 
 
@@ -303,6 +314,9 @@ public class MainScreen extends ActionBarActivity {
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.
                 entry_msg.setText("");
+                infoDisp.setText("Message Written. Thank You.");
+                // Lets vibrate!
+                vibrator.vibrate(500);
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             }
         } catch (IOException e) {
@@ -616,6 +630,14 @@ public class MainScreen extends ActionBarActivity {
         protected void onPostExecute(String result) {
             if (result != null) {
                 mTextView.setText(result);
+            }
+
+            /*
+            *   Auto writes message when armed_nfc_write is activated
+            * */
+            if ( armed_nfc_write ){
+                add_message();
+                armed_nfc_write = false;
             }
         }
     }
