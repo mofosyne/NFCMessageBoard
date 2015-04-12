@@ -249,10 +249,9 @@ public class MainScreen extends ActionBarActivity {
           */
         // We want to include a reference to the app, for those who don't have one.
         String arrPackageName = "com.briankhuu.nfcmessageboard";
-        //NdefRecord aarNdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
-        // Assess the size of tag
-        //int AAR_RECORD_BYTE_LENGTH = 6+4+arrPackageName.length();
         final int AAR_RECORD_BYTE_LENGTH = 50; // I guess i suck at byte counting. well at least this should still work. This approach does lead to wasted space however.
+        //infoMsg = "\n\n---\n To post here. Use the "NFC Messageboard" app: https://play.google.com/store/search?q=NFC%20Message%20Board ";
+
 
         // Trim to size (for now this is just a dumb trimmer...) (Later on, you want to remove whole post first
         // Seem that header and other things takes 14 chars. For safety. Lets just remove 20.
@@ -316,7 +315,11 @@ public class MainScreen extends ActionBarActivity {
                 entry_msg.setText("");
                 infoDisp.setText("Message Written. Thank You.");
                 // Lets vibrate!
-                vibrator.vibrate(500);
+                long[] pattern = {0, 200, 200, 200, 200, 200, 200};
+                vibrator.vibrate(pattern,-1);
+                // Update the display with what was posted to make user experience more responsive
+                mTextView.setText(new_entry);
+                // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             }
         } catch (IOException e) {
@@ -417,6 +420,16 @@ public class MainScreen extends ActionBarActivity {
             }
 
         }
+
+        /*
+            If detect tag, vibrate as well
+         */
+        if (tag !=null){
+            long[] pattern = {0, 500, 100};
+            vibrator.vibrate(pattern,-1);
+        }
+
+
         /*
             So some useful tag info
             http://stackoverflow.com/questions/9971820/how-to-read-detected-nfc-tag-ndef-content-details-in-android
@@ -540,9 +553,11 @@ public class MainScreen extends ActionBarActivity {
                         .show();
                 return true;
             case R.id.about:
+                int versionCode = BuildConfig.VERSION_CODE;
+                String versionName = BuildConfig.VERSION_NAME;
                 new AlertDialog.Builder(this)
                         .setTitle("About")
-                        .setMessage(getString(R.string.about_app))
+                        .setMessage(getString(R.string.about_app)+" | VerCode:"+versionCode+" | VerName: "+versionName)
                         .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 // TODO Add your code for the button here.
