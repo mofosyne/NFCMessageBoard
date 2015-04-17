@@ -294,10 +294,10 @@ public class MainScreen extends ActionBarActivity {
                 // Get current time for timestamping
                 String dateStamp_entry;
                 if (CheckBox_enable_timestamp.isChecked()) {
-                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
+                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
                     df.setTimeZone(TimeZone.getTimeZone("UTC"));
                     String dateStamp = df.format(new Date());
-                    dateStamp_entry = "|D:" + dateStamp;
+                    dateStamp_entry = ", D: " + dateStamp;
                 } else {
                     dateStamp_entry = "";
                 }
@@ -308,7 +308,7 @@ public class MainScreen extends ActionBarActivity {
                 String message = entry_msg.getText().toString();
                 String nick = entry_name.getText().toString();
                  // Construct text
-                new_entry = message+"\n[~:"+nick+dateStamp_entry+"]\n\n" + mTextView.getText().toString();
+                new_entry = message+"\n{=: "+nick+dateStamp_entry+" }\n\n" + mTextView.getText().toString();
                 // Write to tag
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.

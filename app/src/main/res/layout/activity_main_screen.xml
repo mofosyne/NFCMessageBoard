@@ -30,8 +30,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/edit_msg"
-        android:inputType="textShortMessage"
-        android:hint="@string/edit_message" />
+        android:inputType="textMultiLine"
+        android:hint="@string/edit_message"
+        android:singleLine="false" />
 
     <LinearLayout
         android:orientation="horizontal"
