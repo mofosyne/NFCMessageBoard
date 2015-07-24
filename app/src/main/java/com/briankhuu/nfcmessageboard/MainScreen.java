@@ -308,7 +308,7 @@ public class MainScreen extends ActionBarActivity {
                 String message = entry_msg.getText().toString();
                 String nick = entry_name.getText().toString();
                  // Construct text
-                new_entry = message+"\n{=: "+nick+dateStamp_entry+" }\n\n" + mTextView.getText().toString();
+                new_entry = message+"\n_{=: "+nick+dateStamp_entry+" }\n\n" + mTextView.getText().toString();
                 // Write to tag
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.
