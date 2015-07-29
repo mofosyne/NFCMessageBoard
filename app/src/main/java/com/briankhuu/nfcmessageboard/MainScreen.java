@@ -254,25 +254,6 @@ public class MainScreen extends ActionBarActivity {
 
     private void write(String text, Tag tag) throws IOException, FormatException {
         /*
-        *   We don't want to overwrite the first line if it's a header
-        * */
-        /*
-         boolean headerExist = false;
-        String headerText = "";
-        if (text.substring(0,1).contains("#")){
-            int indexNewline = text.indexOf("\n");
-            if (indexNewline>0) {
-                headerText = text.substring(0, indexNewline);
-                text = text.substring(indexNewline + 1, text.length() );
-            }else{
-                headerText = text;
-                text = "";
-            }
-            headerExist = true;
-        }
-        */
-
-        /*
          http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
           */
         // We want to include a reference to the app, for those who don't have one.
@@ -305,7 +286,7 @@ public class MainScreen extends ActionBarActivity {
     }
 
     private void add_message(){
-        /*
+         /*
             Want to at least save your nickname first
             Oh and to also save the state of the timestamp
         * */
@@ -321,11 +302,12 @@ public class MainScreen extends ActionBarActivity {
                 String new_entry = "Hello World! Yo";
                 // Get current time for timestamping
                 String dateStamp_entry;
-                if (CheckBox_enable_timestamp.isChecked()) {
+                boolean enableTimestamp = CheckBox_enable_timestamp.isChecked();
+                if (enableTimestamp) {
                     DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
                     df.setTimeZone(TimeZone.getTimeZone("UTC"));
                     String dateStamp = df.format(new Date());
-                    dateStamp_entry = ", D: " + dateStamp;
+                    dateStamp_entry = dateStamp;
                 } else {
                     dateStamp_entry = "";
                 }
@@ -335,8 +317,39 @@ public class MainScreen extends ActionBarActivity {
                 // Get the text
                 String message = entry_msg.getText().toString();
                 String nick = entry_name.getText().toString();
-                 // Construct text
-                new_entry = message+"\n_{=: "+nick+dateStamp_entry+" }\n\n" + mTextView.getText().toString();
+                /*
+                * We require at least one entry
+                * */
+                if ( !enableTimestamp && ( message.equals("") ) && (nick.equals("")) ){
+                    Toast.makeText(ctx, "Cannot post empty message", Toast.LENGTH_LONG ).show();
+                    return;
+                }
+                // Get the original Tag content
+                String initialTagText = mTextView.getText().toString();
+                /*
+                *   We don't want to overwrite the first line if it's a header
+                * */
+                boolean headerExist = false;
+                String headerText = "";
+                if (initialTagText.substring(0,2).contains("# ")){
+                    int indexNewline = initialTagText.indexOf("\n");
+                    if (indexNewline>0) {
+                        // split the text
+                        headerText = initialTagText.substring(0, indexNewline)+"\n"; // We want to add +1 to indexNewline to also capture the newline char
+                        initialTagText = initialTagText.substring(indexNewline + 1, initialTagText.length() ); // +1 to indexNewline so we can skip the newline char.
+                    }else{
+                        headerText = initialTagText+"\n";
+                        initialTagText = "";
+                    }
+                    headerExist = true;
+                }
+                // Construct MessageEntry
+                if ( !dateStamp_entry.equals("") ){ dateStamp_entry = "D:"+dateStamp_entry+" |";  }
+                if ( !nick.equals("")            ){ nick = "N:"+nick+" |";                        }
+                if ( !message.equals("")         ){ message = "\n"+message+"\n";                  }
+                String new_msgEntry = "## "+nick+""+dateStamp_entry+"\n"+message;
+                // Construct text
+                new_entry = headerText + "\n" +new_msgEntry +"\n---\n"+ initialTagText;
                 // Write to tag
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.
@@ -440,7 +453,7 @@ public class MainScreen extends ActionBarActivity {
                 }else{
                     entry_msg = (TextView)findViewById(R.id.edit_msg);
                     // Get the text
-                    String message = "# "+entry_msg.getText().toString();
+                    String message = "# "+entry_msg.getText().toString()+"\n";
                     // Write to tag
                     write(message,tag);
                     // Clear the message field. Name field is left alone. And all is done.
