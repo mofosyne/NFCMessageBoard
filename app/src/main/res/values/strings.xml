@@ -18,8 +18,10 @@
     <string name="infoDisp_locked">Note: Tag is locked. Read only.</string>
     <string name="menu_about">about</string>
     <string name="menu_readme">readme</string>
-    <string name="tag_create">Create A MessageBoard Tag</string>
+    <string name="tag_create">How To Create A New MsgBrd Tag</string>
     <string name="enable_timestamp">Enable Timestamp</string>
-    <string name="tag_creation">Get an NFC tag with 1kb of space like NTAG216. Then use \'Dangerous NFC\' app from \'Dangerous Things\' to disable writelock to the tag (Please use 1234 as your password). Then place an empty NFC text record with at least 1 character (1 space). Now your tag is ready to use as a messageboard!!</string>
+    <string name="tag_creation">"Minimum Requirement: 1kb (e.g. NTAG216). If stuck outdoor, you need a Waterproof/Epoxy NFC tag. Normal cheap paper tags dies outside, due to moisture and rain. \n\n Steps: \n 1. Use \'Dangerous NFC\' app from \'Dangerous Things\' to guard against writelocking (Please use 1234 as your password). \n 2. Write a text record to an unlocked NFC tag. (For your convenience, in the menu you can click on "Enable New Tag Creation Mode"). \n\n Now your tag is ready to use as a messageboard!!"</string>
     <string name="about_app">"This is an app to allow for offline messaging via a single writable NFC tag. Written By Brian Khuu . Licenced as GNU General Public License v3.0+ . https://github.com/mofosyne/NFCMessageBoard "</string>
+    <string name="new_tag_write">Enable New Tag Creation Mode</string>
+    <string name="cancel_write_new_tag">Disarm New Tag Creation Mode</string>
 </resources>

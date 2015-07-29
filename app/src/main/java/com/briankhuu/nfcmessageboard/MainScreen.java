@@ -77,6 +77,12 @@ public class MainScreen extends ActionBarActivity {
     public static TextView entry_name;
 
     /*
+    *  For tag creation purpose
+    * */
+    public static boolean armed_write_to_empty_tag = false;
+
+
+    /*
         Technical Display
      */
     public static TextView infoDisp;
@@ -213,9 +219,12 @@ public class MainScreen extends ActionBarActivity {
         // Which is made easier by the fact that this app already auto read the tag on touch.
         //Toast.makeText(ctx, ":D", Toast.LENGTH_LONG ).show();
 
-        infoDisp.setText("Please Tap To Write Your Message");
-        armed_nfc_write = true;
-
+        if (armed_write_to_empty_tag) {
+            Toast.makeText(ctx, "Please disable 'New Tag Creation Mode', before posting normal messages.", Toast.LENGTH_LONG ).show();
+        }else{
+            infoDisp.setText("Please Tap To Write Your Message");
+            armed_nfc_write = true;
+        }
         //add_message();
     }
 
@@ -244,6 +253,25 @@ public class MainScreen extends ActionBarActivity {
     }
 
     private void write(String text, Tag tag) throws IOException, FormatException {
+        /*
+        *   We don't want to overwrite the first line if it's a header
+        * */
+        /*
+         boolean headerExist = false;
+        String headerText = "";
+        if (text.substring(0,1).contains("#")){
+            int indexNewline = text.indexOf("\n");
+            if (indexNewline>0) {
+                headerText = text.substring(0, indexNewline);
+                text = text.substring(indexNewline + 1, text.length() );
+            }else{
+                headerText = text;
+                text = "";
+            }
+            headerExist = true;
+        }
+        */
+
         /*
          http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
           */
@@ -321,6 +349,7 @@ public class MainScreen extends ActionBarActivity {
                 mTextView.setText(new_entry);
                 // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
+                infoDisp.setText("SUCCESS! New Tag Created");
             }
         } catch (IOException e) {
             Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG) (type:IO)", Toast.LENGTH_LONG ).show();
@@ -384,10 +413,67 @@ public class MainScreen extends ActionBarActivity {
     }
 
     /*
+    *  Reset forground dispatch for tag creation purpose
+    * */
+
+    private void resetForegroundDispatch(){
+        stopForegroundDispatch(this, mNfcAdapter);
+        setupForegroundDispatch(this, mNfcAdapter);
+    }
+
+
+    /*
         INTENT HANDLING
      */
 
     private void handleIntent(Intent intent) {
+
+        /*
+        *  Create new tag mode:
+        * */
+        if (armed_write_to_empty_tag){
+            tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            Toast.makeText(ctx, "Writing tag", Toast.LENGTH_LONG ).show();
+            try {
+                if(tag==null){
+                    Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
+                }else{
+                    entry_msg = (TextView)findViewById(R.id.edit_msg);
+                    // Get the text
+                    String message = "# "+entry_msg.getText().toString();
+                    // Write to tag
+                    write(message,tag);
+                    // Clear the message field. Name field is left alone. And all is done.
+                    entry_msg.setText("");
+                    infoDisp.setText("New tag created! Thank You.");
+                    // Lets vibrate!
+                    long[] pattern = {0, 200, 200, 200, 200, 200, 200};
+                    vibrator.vibrate(pattern,-1);
+                    // Update the display with what was posted to make user experience more responsive
+                    mTextView.setText(message);
+                    // Let user know it's all gravy
+                    Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
+                }
+            } catch (IOException e) {
+                Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG) (type:IO)", Toast.LENGTH_LONG ).show();
+                e.printStackTrace();
+            } catch (FormatException e) {
+                Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG)(type:Format)" , Toast.LENGTH_LONG ).show();
+                e.printStackTrace();
+            }
+            // Success Message:
+            infoDisp.setText("New Message Board Tag Created - Now disabling new tag write mode. Tap again to confirm content");
+            // Let's revert back to normal behaviour
+            armed_write_to_empty_tag = false;
+            // commented away, because I think foreground dispatch on activation, actually pauses the activity. So this is not really needed.
+            // Note: I think activity is paused on these situation: change scree, dialog, and foreground dispatch event.
+            //resetForegroundDispatch();
+            return;
+        }
+
+        /*
+        *   Else just read tag as usual.
+        * */
         /*
             This detects the intent and calls an nfc reading task
             I modified this to keep the tag object exposed in this class.
@@ -502,12 +588,17 @@ public class MainScreen extends ActionBarActivity {
         // Notice that this is the same filter as in our manifest.
         // ::bk:: Ah I see thanks. So just gotta make sure it matches.
         filters[0] = new IntentFilter();
-        filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
-        filters[0].addCategory(Intent.CATEGORY_DEFAULT);
-        try {
-            filters[0].addDataType(MIME_TEXT_PLAIN);
-        } catch (MalformedMimeTypeException e) {
-            throw new RuntimeException("Check your mime type.");
+        if (!armed_write_to_empty_tag) {
+            filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
+            filters[0].addCategory(Intent.CATEGORY_DEFAULT);
+            try {
+                filters[0].addDataType(MIME_TEXT_PLAIN);
+            } catch (MalformedMimeTypeException e) {
+                throw new RuntimeException("Check your mime type.");
+            }
+        } else {
+            filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
+            filters[0].addCategory(Intent.CATEGORY_DEFAULT);
         }
         /*
             Put filter to the foreground dispatch.
@@ -541,6 +632,7 @@ public class MainScreen extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.creating_a_tag:
+                // show the dialog window
                 new AlertDialog.Builder(this)
                         .setTitle("Creating A Tag")
                         .setMessage(getString(R.string.tag_creation))
@@ -551,6 +643,18 @@ public class MainScreen extends ActionBarActivity {
                         })
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
+                return true;
+            case R.id.write_new_tag:
+                infoDisp.setText("New tag writing mode - !!Armed!! - Any text in message field will be used as the header message. Please tap on empty NFC tag.");
+                Toast.makeText(ctx, "Please Tap To Create New Message Board Tag", Toast.LENGTH_LONG ).show();
+                armed_write_to_empty_tag = true;
+                resetForegroundDispatch();
+                return true;
+            case R.id.cancel_write_new_tag:
+                infoDisp.setText("New tag writing mode - Disarmed");
+                Toast.makeText(ctx, "Disarmed", Toast.LENGTH_LONG ).show();
+                armed_write_to_empty_tag = false;
+                resetForegroundDispatch();
                 return true;
             case R.id.about:
                 int versionCode = BuildConfig.VERSION_CODE;
@@ -571,6 +675,11 @@ public class MainScreen extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    /*
+        infoDisp.setText("Please Tap To Write Your Message");
+        armed_nfc_write = true;
+    * */
 
     /**
      *
