@@ -20,7 +20,10 @@
         android:id="@+id/textView"
         android:textIsSelectable="false"
         android:textStyle="bold" />
-
+    <TextView
+        android:layout_width="352dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView_tagID" />
     <TextView
         android:layout_width="352dp"
         android:layout_height="wrap_content"
@@ -78,7 +81,24 @@
         android:id="@+id/textView_taginfo"
         android:layout_weight="1.30"
         android:textStyle="bold" />
-
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="This button below can be used in the occasion that this app accidentally wipes out the content of the tag. (e.g. tag shows up as empty after a write). Alternatively, it lets you copy the text content of the tag across. NOTE: If you want to create a new tag, then there is a button in the menu to do so."
+        android:id="@+id/restoreTag_info"
+        android:textIsSelectable="false"
+        android:textStyle="bold" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Restore Tag"
+        android:id="@+id/restoreTag"
+        android:onClick="restoreTagButton"
+        android:layout_weight="0.88" />
 
 </LinearLayout>
 </ScrollView>

@@ -68,6 +68,8 @@ public class MainScreen extends ActionBarActivity {
     // Yea, I know. Copy pastas. I'm new to it. Cut me some slack.
     public static final String MIME_TEXT_PLAIN = "text/plain";
     public static final String TAG = "NfcTest";
+    //TagID
+    public static String tagID_string = "";
 
     /*
     *  Staging Area For The Message To Append
@@ -80,11 +82,13 @@ public class MainScreen extends ActionBarActivity {
     *  For tag creation purpose
     * */
     public static boolean armed_write_to_empty_tag = false;
+    public static boolean armed_write_to_restore_tag = false;
 
 
     /*
         Technical Display
      */
+    public static TextView tagID_Disp;
     public static TextView infoDisp;
     public static TextView tagInfoDisp;
     public int tag_size = 0;
@@ -128,6 +132,7 @@ public class MainScreen extends ActionBarActivity {
         // Setup the TextView display ( ::bk:: This looks very much like calling DOM objects in javascript )
         mTextView = (TextView) findViewById(R.id.textView_maindisplay);
         tagInfoDisp = (TextView) findViewById(R.id.textView_taginfo);
+        tagID_Disp = (TextView) findViewById(R.id.textView_tagID);
 
         // Contains General Alerts e.g. word count exceeding wordcounts etc...
         infoDisp = (TextView) findViewById(R.id.textView_info);
@@ -228,6 +233,24 @@ public class MainScreen extends ActionBarActivity {
         //add_message();
     }
 
+    /*
+        Restore Tag Content Button (Good when the occational write bug occours)
+     */
+    public void restoreTagButton(View view){
+        if (armed_write_to_restore_tag == false){
+            infoDisp.setText("Tag Restore Mode - ARMED");
+            Toast.makeText(ctx, "Restore Mode Enabled", Toast.LENGTH_LONG ).show();
+            armed_write_to_empty_tag = true;
+            armed_write_to_restore_tag = true;
+            resetForegroundDispatch();
+        } else {
+            infoDisp.setText("Tag Restore Mode - DISARMED");
+            Toast.makeText(ctx, "Restore Mode Disabled", Toast.LENGTH_LONG ).show();
+            armed_write_to_empty_tag = false;
+            armed_write_to_restore_tag = false;
+            resetForegroundDispatch();
+        }
+    }
 
     private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
         /*
@@ -439,6 +462,19 @@ public class MainScreen extends ActionBarActivity {
         INTENT HANDLING
      */
 
+    // Used by handleIntent()
+    // By maybewecouldstealavan from http://stackoverflow.com/questions/9655181/how-to-convert-a-byte-array-to-a-hex-string-in-java
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
     private void handleIntent(Intent intent) {
 
         /*
@@ -451,9 +487,17 @@ public class MainScreen extends ActionBarActivity {
                 if(tag==null){
                     Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
                 }else{
-                    entry_msg = (TextView)findViewById(R.id.edit_msg);
-                    // Get the text
-                    String message = "# "+entry_msg.getText().toString()+"\n";
+                    String message = "";
+                    if (armed_write_to_restore_tag) { // Is this to restore a broken tag?
+                        mTextView = (TextView) findViewById(R.id.textView_maindisplay);
+                        // Get the original Tag content
+                        message = mTextView.getText().toString();
+                    } else {
+                        // Get the object for message field
+                        entry_msg = (TextView) findViewById(R.id.edit_msg);
+                        // Get the text
+                        message = "# " + entry_msg.getText().toString() + "\n";
+                    }
                     // Write to tag
                     write(message,tag);
                     // Clear the message field. Name field is left alone. And all is done.
@@ -478,6 +522,7 @@ public class MainScreen extends ActionBarActivity {
             infoDisp.setText("New Message Board Tag Created - Now disabling new tag write mode. Tap again to confirm content");
             // Let's revert back to normal behaviour
             armed_write_to_empty_tag = false;
+            armed_write_to_restore_tag = false;
             // commented away, because I think foreground dispatch on activation, actually pauses the activity. So this is not really needed.
             // Note: I think activity is paused on these situation: change scree, dialog, and foreground dispatch event.
             //resetForegroundDispatch();
@@ -549,8 +594,12 @@ public class MainScreen extends ActionBarActivity {
                 recTypes[i] = new String(ndefRecords[i].getType());
             }
 
+            // Get Tag ID
+            tagID_string = bytesToHex(tag.getId());
+            tagID_Disp.setText("TAG ID: 0x"+tagID_string);
+
             //display technical info
-            tagInfoDisp.setText("tag size: " + tag_size + " | writeable?: " + Boolean.toString(writable) + " | tag type: " + type + " | recTypes: " + TextUtils.join(",", recTypes));
+            tagInfoDisp.setText("tag ID: "+ tagID_string +" | tag size: " + tag_size + " | writeable?: " + Boolean.toString(writable) + " | tag type: " + type + " | recTypes: " + TextUtils.join(",", recTypes));
 
             //Alert user if tag is write protected
             if (!writable){
