@@ -13,15 +13,18 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.nfc.NfcAdapter;
 
 import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 //import android.util.Log;
+import android.text.style.ForegroundColorSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -59,6 +62,11 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.tech.Ndef;
 import android.os.AsyncTask;
+
+/*
+* For styling
+* */
+import android.text.Spannable;
 
 
 public class MainScreen extends ActionBarActivity {
@@ -431,6 +439,57 @@ public class MainScreen extends ActionBarActivity {
             i += skip;
         }
         return s;
+    }
+
+
+    /*
+    * Styling the textview for easier readability
+    * */
+    private void updateMainDisplay(String text) {
+        TextView mTextView = (TextView) findViewById(R.id.textView_maindisplay);
+        // Let's update the main display
+        mTextView.setText(text);
+        // Let's prettify it!
+        //changeLineinView(mTextView, "---", Color.CYAN);
+        changeLineinView(mTextView, "## ", Color.CYAN);
+    }
+
+
+    private void changeTextinView(TextView tv, String target, int colour) {
+        // Thanks NickT - http://stackoverflow.com/questions/7364119/how-to-use-spannablestring-with-regex-in-android
+        String vString = (String) tv.getText();
+        int startSpan = 0, endSpan = 0;
+        Spannable spanRange = new SpannableString(vString);
+
+        while (true) {
+            startSpan = vString.indexOf(target, endSpan);
+            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+            // Need a NEW span object every loop, else it just moves the span
+            if (startSpan < 0)
+                break;
+            endSpan = startSpan + target.length();
+            spanRange.setSpan(foreColour, startSpan, endSpan,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        tv.setText(spanRange);
+    }
+
+    private void changeLineinView(TextView tv, String target, int colour) {
+        String vString = (String) tv.getText().toString();
+        int startSpan = 0, endSpan = 0;
+        Spannable spanRange = new SpannableString(vString);
+        while (true) {
+            startSpan = vString.indexOf(target, endSpan);
+            endSpan = vString.indexOf("\n", startSpan);
+            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+            // Need a NEW span object every loop, else it just moves the span
+            if (startSpan < 0)
+                break;
+            //endSpan = startSpan + target.length();
+            spanRange.setSpan(foreColour, startSpan, endSpan,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        tv.setText(spanRange);
     }
 
     /*
@@ -814,8 +873,10 @@ public class MainScreen extends ActionBarActivity {
 
         @Override
         protected void onPostExecute(String result) {
+
+            // So this let's us display the actual results
             if (result != null) {
-                mTextView.setText(result);
+                updateMainDisplay(result);
             }
 
             /*
