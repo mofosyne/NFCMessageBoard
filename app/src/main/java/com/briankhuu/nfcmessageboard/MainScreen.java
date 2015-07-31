@@ -25,9 +25,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 //import android.util.Log;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -70,7 +68,10 @@ import android.os.AsyncTask;
 * For styling
 * */
 import android.text.Spannable;
-
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 
 public class MainScreen extends ActionBarActivity {
 
@@ -378,10 +379,10 @@ public class MainScreen extends ActionBarActivity {
                     headerExist = true;
                 }
                 // Construct MessageEntry
-                if ( !dateStamp_entry.equals("") ){ dateStamp_entry = "\"date\":\""+dateStamp_entry+"\"|";  }
-                if ( !nick.equals("")            ){ nick = "\"nick\":\""+nick+"\"|";                        }
+                if ( !dateStamp_entry.equals("") ){ dateStamp_entry = " \"date\":\""+dateStamp_entry+"\"|";  }
+                if ( !nick.equals("")            ){ nick = " \"nick\":\""+nick+"\"|";                        }
                 if ( !message.equals("")         ){ message = message+"\n";                  }
-                String new_msgEntry = "## "+nick+""+dateStamp_entry+"\n"+message+"\n---\n";
+                String new_msgEntry = "##"+nick+""+dateStamp_entry+"\n"+message+"\n---\n";
                 // Construct text
                 new_entry = headerText + "\n" + new_msgEntry + initialTagText;
                 // Write to tag
@@ -453,10 +454,25 @@ public class MainScreen extends ActionBarActivity {
         // Let's update the main display
         mTextView.setText(text);
         // Let's prettify it!
-        changeLineinView_TITLESTYLE(mTextView, "# ", 0xfff4585d);
-        changeLineinView(mTextView, "\n## ", 0xFFF4A158);
-        changeLineinView(mTextView, "\n---", 0xFFF4A158);
-        markdownBoldInView(mTextView,0xFF89e24d);
+        changeLineinView_TITLESTYLE(mTextView, "# ", 0xfff4585d, 2f); // Primary Header
+        changeLineinView(mTextView, "\n## ", 0xFFF4A158, 1.2f); // Secondary Header
+        changeLineinView(mTextView, "\n---", 0xFFF4A158, 1.2f); // Horizontal Rule
+        changeLineinView(mTextView, "\n>",   0xFF89e24d, 0.9f); // Block Quotes
+        changeLineinView(mTextView, "\n - ", 0xFFA74DE3, 1f);   // Classic Markdown List
+        changeLineinView(mTextView, "\n- ", 0xFFA74DE3, 1f);   // NonStandard List
+
+        //spanSetterInView(String startTarget, String endTarget, int typefaceStyle, String fontFamily,TextView tv, int colour, float size)
+        // Limitation of spanSetterInView. Well its not a regular expression... so can't exactly have * list, and *bold* at the same time.
+        spanSetterInView(mTextView,  " **",   "** ",   Typeface.BOLD,        "",  0xFF89e24d,  1f, true); // Bolding
+        spanSetterInView(mTextView,   " *",    "* ",   Typeface.ITALIC,      "",  0xFF4dd8e2,  1f, true); // Italic
+        spanSetterInView(mTextView, " ***",  "*** ",   Typeface.BOLD_ITALIC, "",  0xFF4de25c,  1f, true); // Bold and Italic
+        spanSetterInView(mTextView,   " `",    "` ",   Typeface.BOLD,      "monospace",  0xFF45c152,  1.1f, true); // inline code
+        spanSetterInView(mTextView,"\n    ","\n",      Typeface.BOLD,      "monospace",  0xFF45c152,  1.1f, true); // classic indented code
+        spanSetterInView(mTextView,"\n```\n","\n```\n",Typeface.BOLD,      "monospace",  0xFF45c152,  1.1f, false); // fenced code Blocks ( endAtLineBreak=false since this is a multiline block operator)
+        //markdownBoldInView(mTextView,0xFF89e24d);         // Bolding
+        //markdownItalicInView(mTextView,0xFFd3e24d);       // Italic
+        //markdownBoldItalicInView(mTextView,0xFF4de25c);   // Bold and Italic
+        //fencedCodeBlockInView(mTextView,0xFF4de25c);      // Fenced Code Blocks
     }
 
     /*
@@ -480,7 +496,7 @@ public class MainScreen extends ActionBarActivity {
     }
     */
 
-    private void changeLineinView(TextView tv, String target, int colour) {
+    private void changeLineinView(TextView tv, String target, int colour, float size) {
         String vString = (String) tv.getText().toString();
         int startSpan = 0, endSpan = 0;
         //Spannable spanRange = new SpannableString(vString);
@@ -496,14 +512,14 @@ public class MainScreen extends ActionBarActivity {
                 //endSpan = startSpan + target.length();
                 spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 // Also wannna bold the span too
-                spanRange.setSpan(new RelativeSizeSpan(1.2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 spanRange.setSpan(new StyleSpan(Typeface.BOLD), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
         tv.setText(spanRange);
     }
 
-    private void changeLineinView_TITLESTYLE(TextView tv, String target, int colour) {
+    private void changeLineinView_TITLESTYLE(TextView tv, String target, int colour, float size) {
         String vString = (String) tv.getText().toString();
         int startSpan = 0, endSpan = 0;
         //Spannable spanRange = new SpannableString(vString);
@@ -521,15 +537,47 @@ public class MainScreen extends ActionBarActivity {
             if (startSpan < 0)
                 break;
                 */
-            // Need to make sure that start range is always smaller than end range.
-            if (endSpan > startSpan) {
-                //endSpan = startSpan + target.length();
-                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                // Also wannna bold the span too
-                spanRange.setSpan(new RelativeSizeSpan(2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if ( !(startSpan < 0) ) { // hacky I know, but its to cater to the case where there is no header text
+                // Need to make sure that start range is always smaller than end range.
+                if (endSpan > startSpan) {
+                    //endSpan = startSpan + target.length();
+                    spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    // Also wannna bold the span too
+                    spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
             }
         //}
+        tv.setText(spanRange);
+    }
+
+
+    private void spanSetterInView(TextView tv, String startTarget, String endTarget, int typefaceStyle, String fontFamily, int colour, float size, boolean endAtLineBreak) {
+        String vString = (String) tv.getText().toString();
+        int startSpan = 0, endSpan = 0;
+        //Spannable spanRange = new SpannableString(vString);
+        Spannable spanRange = (Spannable) tv.getText();
+        while (true) {
+            startSpan = vString.indexOf(startTarget, endSpan-1);     // (!@#$%) I want to check a character behind in case it is a newline
+            endSpan = vString.indexOf(endTarget, startSpan+1+startTarget.length());     // But at the same time, I do not want to read the point found by startSpan. This is since startSpan may point to a initial newline. We also need to avoid the first patten matching a token from the second pattern.
+            // Since this is pretty powerful, we really want to avoid overmatching it, and limit any problems to a single line. Especially if people forget to type in the closing symbol (e.g. * in bold)
+            if (endAtLineBreak){
+                int endSpan_linebreak = vString.indexOf("\n", startSpan+1+startTarget.length());
+                if ( endSpan_linebreak < endSpan ) { endSpan = endSpan_linebreak; }
+            }
+            // Fix: -1 in startSpan or endSpan, indicates that the indexOf has already searched the entire string with not valid match (Lack of endspan check, occoured because of the inclusion of endTarget, which added extra complications)
+            if ( (startSpan < 0) || ( endSpan < 0 ) ) break;// Need a NEW span object every loop, else it just moves the span
+            // We want to also include the end "** " characters
+            endSpan += endTarget.length();
+            // If all is well, we shall set the styles and etc...
+            if (endSpan > startSpan) {// Need to make sure that start range is always smaller than end range. (Solved! Refer to few lines above with (!@#$%) )
+                spanRange.setSpan(new ForegroundColorSpan(colour), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(typefaceStyle), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Default to normal font family if settings is empty
+                if( !fontFamily.equals("") )  spanRange.setSpan(new TypefaceSpan(fontFamily), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
         tv.setText(spanRange);
     }
 
@@ -552,6 +600,54 @@ public class MainScreen extends ActionBarActivity {
                 // Also wannna bold the span too
                 spanRange.setSpan(new RelativeSizeSpan(1.2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 spanRange.setSpan(new StyleSpan(Typeface.BOLD), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        tv.setText(spanRange);
+    }
+
+    private void markdownItalicInView(TextView tv, int colour) {
+        String vString = (String) tv.getText().toString();
+        int startSpan = 0, endSpan = 0;
+        //Spannable spanRange = new SpannableString(vString);
+        Spannable spanRange = (Spannable) tv.getText();
+        while (true) {
+            startSpan = vString.indexOf(" *", endSpan-1);     // (!@#$%) I want to check a character behind in case it is a newline
+            endSpan = vString.indexOf("* ", startSpan+1);     // But at the same time, I do not want to read the point found by startSpan. This is since startSpan may point to a initial newline.
+            endSpan += 2; // We want to also include the end "** " characters
+            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+            // Need a NEW span object every loop, else it just moves the span
+            if (startSpan < 0)       break;
+            // Need to make sure that start range is always smaller than end range. (Solved! Refer to few lines above with (!@#$%) )
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(1.2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        tv.setText(spanRange);
+    }
+
+    private void markdownBoldItalicInView(TextView tv, int colour) {
+        String vString = (String) tv.getText().toString();
+        int startSpan = 0, endSpan = 0;
+        //Spannable spanRange = new SpannableString(vString);
+        Spannable spanRange = (Spannable) tv.getText();
+        while (true) {
+            startSpan = vString.indexOf(" ***", endSpan-1);     // (!@#$%) I want to check a character behind in case it is a newline
+            endSpan = vString.indexOf("*** ", startSpan+1);     // But at the same time, I do not want to read the point found by startSpan. This is since startSpan may point to a initial newline.
+            endSpan += 2; // We want to also include the end "** " characters
+            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+            // Need a NEW span object every loop, else it just moves the span
+            if (startSpan < 0)       break;
+            // Need to make sure that start range is always smaller than end range. (Solved! Refer to few lines above with (!@#$%) )
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(1.2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
         tv.setText(spanRange);
@@ -620,13 +716,14 @@ public class MainScreen extends ActionBarActivity {
                     } else {
                         // Get the object for message field
                         entry_msg = (TextView) findViewById(R.id.edit_msg);
+                        // Clear the message field. Name field is left alone. And all is done.
+                        entry_msg.setText("");
                         // Get the text
                         message = "# " + entry_msg.getText().toString() + "\n";
                     }
                     // Write to tag
                     write(message,tag);
-                    // Clear the message field. Name field is left alone. And all is done.
-                    entry_msg.setText("");
+
                     infoDisp.setText("New tag created! Thank You.");
                     // Lets vibrate!
                     long[] pattern = {0, 200, 200, 200, 200, 200, 200};
@@ -825,7 +922,6 @@ public class MainScreen extends ActionBarActivity {
                         .setMessage(getString(R.string.tag_creation))
                         .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                // TODO Add your code for the button here.
                             }
                         })
                         .setIcon(android.R.drawable.ic_dialog_alert)
@@ -851,7 +947,6 @@ public class MainScreen extends ActionBarActivity {
                         .setMessage(getString(R.string.about_app)+" | VerCode:"+versionCode+" | VerName: "+versionName)
                         .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                // TODO Add your code for the button here.
                             }
                         })
                         .setIcon(android.R.drawable.ic_dialog_alert)

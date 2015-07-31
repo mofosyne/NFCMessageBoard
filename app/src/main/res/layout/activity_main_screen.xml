@@ -35,7 +35,9 @@
         android:id="@+id/edit_msg"
         android:inputType="textMultiLine"
         android:hint="@string/edit_message"
-        android:singleLine="false" />
+        android:singleLine="false"
+        android:fontFamily="monospace"
+        android:textSize="14sp" />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -74,7 +76,8 @@
         android:text="@string/output_display"
         android:id="@+id/textView_maindisplay"
         android:textIsSelectable="true"
-        android:autoLink="web|map|email" />
+        android:autoLink="web|map|email"
+        android:textSize="14sp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -82,6 +85,11 @@
         android:id="@+id/textView_taginfo"
         android:layout_weight="1.30"
         android:textStyle="bold" />
+
+
+
+    <!-- Restore System -->
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dp"
@@ -100,6 +108,14 @@
         android:id="@+id/restoreTag"
         android:onClick="restoreTagButton"
         android:layout_weight="0.88" />
+
+    <!-- Future Tag content upload system System -->
+    <!-- TODO: Tag content upload system System :: http://stackoverflow.com/questions/2201917/how-can-i-open-a-url-in-androids-web-browser-from-my-application -->
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
 
 </LinearLayout>
 </ScrollView>

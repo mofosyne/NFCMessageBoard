@@ -44,6 +44,41 @@ There is even an entry on it in n-o-d-e net magazine: http://n-o-d-e.net/post/11
 * NFC tags placed on metal needs to be of the variety that supports sticking on metal. The metal would usually interfere with standard NFC stickers.
 * Sometimes this app accidentally wipes the tag. A restore button is included just in case.
 
+## Markdownish Syntax:
+
+This is the supported syntax. Can't support full markdown, since this is only a lite hacky implementation. But kind handy for a no frills display that is easy to type on a mobile phone keypad.
+
+```
+# H1 only in first line (Due to technical hacks used)
+
+## H2 headers as usual
+
+## Styling
+*italic* **bold** ***bold_italic***
+
+## Classic List
+ - list item 1
+ - list item 2
+
+## Nonstandard List Syntax
+- list item 1
+- list item 2
+
+## Block Quotes
+> Quoted stuff
+
+## codes
+here is inline `literal` codes. Must have space around it.
+    
+    ```
+    codeblocks
+    Good for ascii art
+    ```
+    
+        Or 4 space code indent like classic markdown. 
+    
+```
+
 ## How to contribute:
 
 Clone this repo, and push your changes to me. It is more likely to be accepted, if it cleans up the codes and makes it easier to read... or it is one of the wishlist entries.
