@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.nfc.NfcAdapter;
 
 import android.os.Vibrator;
@@ -25,6 +26,8 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 //import android.util.Log;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -390,7 +393,7 @@ public class MainScreen extends ActionBarActivity {
                 long[] pattern = {0, 200, 200, 200, 200, 200, 200};
                 vibrator.vibrate(pattern,-1);
                 // Update the display with what was posted to make user experience more responsive
-                mTextView.setText(new_entry);
+                updateMainDisplay(new_entry);
                 // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
                 infoDisp.setText("SUCCESS! New Tag Created");
@@ -450,11 +453,13 @@ public class MainScreen extends ActionBarActivity {
         // Let's update the main display
         mTextView.setText(text);
         // Let's prettify it!
-        //changeLineinView(mTextView, "---", Color.CYAN);
-        changeLineinView(mTextView, "## ", Color.CYAN);
+        changeLineinView_TITLESTYLE(mTextView, "# ", 0xfff4585d);
+        changeLineinView(mTextView, "\n## ", 0xFFF4A158);
+        changeLineinView(mTextView, "\n---", 0xFFF4A158);
+        markdownBoldInView(mTextView,0xFF89e24d);
     }
 
-
+    /*
     private void changeTextinView(TextView tv, String target, int colour) {
         // Thanks NickT - http://stackoverflow.com/questions/7364119/how-to-use-spannablestring-with-regex-in-android
         String vString = (String) tv.getText();
@@ -473,24 +478,85 @@ public class MainScreen extends ActionBarActivity {
         }
         tv.setText(spanRange);
     }
+    */
 
     private void changeLineinView(TextView tv, String target, int colour) {
         String vString = (String) tv.getText().toString();
         int startSpan = 0, endSpan = 0;
-        Spannable spanRange = new SpannableString(vString);
+        //Spannable spanRange = new SpannableString(vString);
+        Spannable spanRange = (Spannable) tv.getText();
         while (true) {
-            startSpan = vString.indexOf(target, endSpan);
-            endSpan = vString.indexOf("\n", startSpan);
+            startSpan = vString.indexOf(target, endSpan-1);     // (!@#$%) I want to check a character behind in case it is a newline
+            endSpan = vString.indexOf("\n", startSpan+1);       // But at the same time, I do not want to read the point found by startSpan. This is since startSpan may point to a initial newline.
             ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
             // Need a NEW span object every loop, else it just moves the span
-            if (startSpan < 0)
-                break;
-            //endSpan = startSpan + target.length();
-            spanRange.setSpan(foreColour, startSpan, endSpan,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (startSpan < 0)       break;
+            // Need to make sure that start range is always smaller than end range. (Solved! Refer to few lines above with (!@#$%) )
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(1.2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.BOLD), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
         }
         tv.setText(spanRange);
     }
+
+    private void changeLineinView_TITLESTYLE(TextView tv, String target, int colour) {
+        String vString = (String) tv.getText().toString();
+        int startSpan = 0, endSpan = 0;
+        //Spannable spanRange = new SpannableString(vString);
+        Spannable spanRange = (Spannable) tv.getText();
+        /*
+        * Had to do this, since there is something wrong with this overlapping the "##" detection routine
+        * Plus you only really need one title.
+         */
+        //while (true) {
+            startSpan = vString.substring(0,target.length()).indexOf(target, endSpan-1); //substring(target.length()) since we only want the first line
+            endSpan = vString.indexOf("\n", startSpan+1);
+            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+            // Need a NEW span object every loop, else it just moves the span
+            /*
+            if (startSpan < 0)
+                break;
+                */
+            // Need to make sure that start range is always smaller than end range.
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        //}
+        tv.setText(spanRange);
+    }
+
+    private void markdownBoldInView(TextView tv, int colour) {
+        String vString = (String) tv.getText().toString();
+        int startSpan = 0, endSpan = 0;
+        //Spannable spanRange = new SpannableString(vString);
+        Spannable spanRange = (Spannable) tv.getText();
+        while (true) {
+            startSpan = vString.indexOf(" **", endSpan-1);     // (!@#$%) I want to check a character behind in case it is a newline
+            endSpan = vString.indexOf("** ", startSpan+1);     // But at the same time, I do not want to read the point found by startSpan. This is since startSpan may point to a initial newline.
+            endSpan += 3; // We want to also include the end "** " characters
+            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+            // Need a NEW span object every loop, else it just moves the span
+            if (startSpan < 0)       break;
+            // Need to make sure that start range is always smaller than end range. (Solved! Refer to few lines above with (!@#$%) )
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(1.2f), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.BOLD), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        tv.setText(spanRange);
+    }
+
 
     /*
     *  RESUME AND PAUSE SECTION

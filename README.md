@@ -24,6 +24,8 @@ There is even an entry on it in n-o-d-e net magazine: http://n-o-d-e.net/post/11
 * Links, email, map address are autolinked
 * Static Header Text - So you can keep a short unchanging message on the first line.
 * Create a new tag - Easier to get started with this! Just get an empty writable NFC tag!
+* Message text are selectable
+* You can bold text via markdown style `**bold**`
 
 ## Wishlist:
 
