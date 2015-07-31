@@ -73,6 +73,7 @@
         android:layout_height="wrap_content"
         android:text="@string/output_display"
         android:id="@+id/textView_maindisplay"
+        android:textIsSelectable="true"
         android:autoLink="web|map|email" />
 
     <TextView

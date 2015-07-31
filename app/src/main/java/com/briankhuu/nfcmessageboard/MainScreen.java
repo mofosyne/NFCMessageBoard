@@ -367,12 +367,12 @@ public class MainScreen extends ActionBarActivity {
                     headerExist = true;
                 }
                 // Construct MessageEntry
-                if ( !dateStamp_entry.equals("") ){ dateStamp_entry = "D:"+dateStamp_entry+" |";  }
-                if ( !nick.equals("")            ){ nick = "N:"+nick+" |";                        }
-                if ( !message.equals("")         ){ message = "\n"+message+"\n";                  }
-                String new_msgEntry = "## "+nick+""+dateStamp_entry+"\n"+message;
+                if ( !dateStamp_entry.equals("") ){ dateStamp_entry = "\"date\":\""+dateStamp_entry+"\"|";  }
+                if ( !nick.equals("")            ){ nick = "\"nick\":\""+nick+"\"|";                        }
+                if ( !message.equals("")         ){ message = message+"\n";                  }
+                String new_msgEntry = "## "+nick+""+dateStamp_entry+"\n"+message+"\n---\n";
                 // Construct text
-                new_entry = headerText + "\n" +new_msgEntry +"\n---\n"+ initialTagText;
+                new_entry = headerText + "\n" + new_msgEntry + initialTagText;
                 // Write to tag
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.
