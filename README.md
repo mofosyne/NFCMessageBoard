@@ -111,10 +111,19 @@ It doesn't work on empty tags, you need to at least seed it with a plain text NF
 * Stickers (Good for round NFC tags):
  - http://i.imgur.com/0zbssBd.png
 
-* Credit Card Size (85.60×53.98 mm) (Contains information about installing this app):
+* Credit Card Size (85.60ï¿½53.98 mm) (Contains information about installing this app):
  - http://i.imgur.com/KLFgqL7.jpg
 
 
 # keywords:
 
 deaddrop, dead drop, deaddrops, dead drops, nfc message board
+
+
+-----
+
+
+# version notes
+
+## V2.3.1
+ Basically had to squash a bug within the "psudo markdown" rendering which made it stuck in an infinite loop when reading a tag that lacks a particular symbol.

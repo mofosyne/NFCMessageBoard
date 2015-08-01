@@ -506,7 +506,8 @@ public class MainScreen extends ActionBarActivity {
             endSpan = vString.indexOf("\n", startSpan+1);       // But at the same time, I do not want to read the point found by startSpan. This is since startSpan may point to a initial newline.
             ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
             // Need a NEW span object every loop, else it just moves the span
-            if (startSpan < 0)       break;
+            // Fix: -1 in startSpan or endSpan, indicates that the indexOf has already searched the entire string with not valid match (Lack of endspan check, occoured because of the inclusion of endTarget, which added extra complications)
+            if ( (startSpan < 0) || ( endSpan < 0 ) ) break;// Need a NEW span object every loop, else it just moves the span
             // Need to make sure that start range is always smaller than end range. (Solved! Refer to few lines above with (!@#$%) )
             if (endSpan > startSpan) {
                 //endSpan = startSpan + target.length();
