@@ -145,7 +145,7 @@ It's quite a handy way to keep your readme file accessible in the resource direc
 Here is how to do it. Copy the code below to your gradle buildfile in /app/src/build.gradle . (You might need to adjust the "from" settings, but should be self explanatory).
 
      /*
-     * Based on https://discuss.gradle.org/t/how-to-copy-and-rename-a-single-file/5956
+     * https://discuss.gradle.org/t/how-to-copy-and-rename-a-single-file/5956
      * */
      task copyreadme(type: Copy) {
          from '../README.md'

@@ -952,7 +952,10 @@ public class MainScreen extends ActionBarActivity {
                         })
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
-
+                return true;
+            case R.id.readme:
+                Intent intent = new Intent(this, ReadMe.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
