@@ -717,10 +717,10 @@ public class MainScreen extends ActionBarActivity {
                     } else {
                         // Get the object for message field
                         entry_msg = (TextView) findViewById(R.id.edit_msg);
-                        // Clear the message field. Name field is left alone. And all is done.
-                        entry_msg.setText("");
                         // Get the text
                         message = "# " + entry_msg.getText().toString() + "\n";
+                        // Clear the message field. Name field is left alone. And all is done.
+                        entry_msg.setText("");
                     }
                     // Write to tag
                     write(message,tag);
