@@ -6,10 +6,11 @@ android {
 
     defaultConfig {
         applicationId "com.briankhuu.nfcmessageboard"
-        minSdkVersion 16
+        /*minSdkVersion 16*/
+        minSdkVersion 10
         targetSdkVersion 22
-        versionCode 12
-        versionName "2.3.3"
+        versionCode 13
+        versionName "2.3.4"
     }
     buildTypes {
         release {

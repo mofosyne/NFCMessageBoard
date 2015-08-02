@@ -11,38 +11,38 @@ There is even an entry on it in n-o-d-e net magazine: http://n-o-d-e.net/post/11
 
 ## Potential Uses:
 
-* Geo Cache GuestBook
-* Ingress Local Message Store
-* Personal Reminder System (E.g. place a tag on your desk, and tap to read the latest reminder)
+- Geo Cache GuestBook
+- Ingress Local Message Store
+- Personal Reminder System (E.g. place a tag on your desk, and tap to read the latest reminder)
 
 ## Features:
 
-* Reads Plain Text
-* Write and prepends a message to a Plain Text Tag
-* Message can be either a message, or nickname, or a timestamp only; or a combination of each one.
-* UTF-8 support, so can show emoticon.
-* Links, email, map address are autolinked
-* Static Header Text - So you can keep a short unchanging message on the first line.
-* Create a new tag - Easier to get started with this! Just get an empty writable NFC tag!
-* Message text are selectable
-* You can bold text via markdown style `**bold**`
+- Reads Plain Text
+- Write and prepends a message to a Plain Text Tag
+- Message can be either a message, or nickname, or a timestamp only; or a combination of each one.
+- UTF-8 support, so can show emoticon.
+- Links, email, map address are autolinked
+- Static Header Text - So you can keep a short unchanging message on the first line.
+- Create a new tag - Easier to get started with this! Just get an empty writable NFC tag!
+- Message text are selectable
+- You can bold text via markdown style `**bold**`
 
 ## Wishlist:
 
-* Cleaner and less hacky sourcecode
-* Saves tag content based on tag UUID, so you can follow a conversation in the tag by tapping over a period of time. (It appends any new content extracted from the tag to the saved tag content system)
+- Cleaner and less hacky sourcecode
+- Saves tag content based on tag UUID, so you can follow a conversation in the tag by tapping over a period of time. (It appends any new content extracted from the tag to the saved tag content system)
  - E.g. allows you to scan, and then read the conversation away from the tag.
-* Parse messages to display nicer, and allow for extra metadata (e.g.Reply to field)
-* Allow messages to hop to another location from another phone (This will be useful for larger tags)
+- Parse messages to display nicer, and allow for extra metadata (e.g.Reply to field)
+- Allow messages to hop to another location from another phone (This will be useful for larger tags)
  - Eventually, would be nice to a sneakernet BBS. Where every tag will have a portion dedicated to autoswapping foreign messages/threads
-* For larger tags, could also allow for threads, allowing for a more structured conversation. 
-* Uploads latest messages to a tracking website (Might be a separate app, to let people avoid the internet enabled version)
+- For larger tags, could also allow for threads, allowing for a more structured conversation.
+- Uploads latest messages to a tracking website (Might be a separate app, to let people avoid the internet enabled version)
 
 ## Note:
 
-* NFC tags placed outdoor should be of the waterproof/epoxy variety. Otherwise the rain will shortcircuit/kill the onboard NFC chip.
-* NFC tags placed on metal needs to be of the variety that supports sticking on metal. The metal would usually interfere with standard NFC stickers.
-* Sometimes this app accidentally wipes the tag. A restore button is included just in case.
+- NFC tags placed outdoor should be of the waterproof/epoxy variety. Otherwise the rain will shortcircuit/kill the onboard NFC chip.
+- NFC tags placed on metal needs to be of the variety that supports sticking on metal. The metal would usually interfere with standard NFC stickers.
+- Sometimes this app accidentally wipes the tag. A restore button is included just in case.
 
 ## Markdownish Syntax:
 
@@ -54,7 +54,7 @@ This is the supported syntax. Can't support full markdown, since this is only a 
 ## H2 headers as usual
 
 ## Styling
-*italic* **bold** ***bold_italic***
+Like: *italic* **bold** ***bold_italic***
 
 ## Classic List
  - list item 1
@@ -93,9 +93,9 @@ ReadMe: https://github.com/mofosyne/NFCMessageBoard/blob/master/README.md
 
 Download App:
 
-* Android Marketplace: https://play.google.com/store/apps/details?id=com.briankhuu.nfcmessageboard 
+- Android Marketplace: https://play.google.com/store/apps/details?id=com.briankhuu.nfcmessageboard
 
-* F-Droid Marketplace: https://f-droid.org/repository/browse/?fdfilter=nfc&fdid=com.briankhuu.nfcmessageboard 
+- F-Droid Marketplace: https://f-droid.org/repository/browse/?fdfilter=nfc&fdid=com.briankhuu.nfcmessageboard
 
 # Why an app?
 Obviously this can be done by any tag writing app. But the main objective of this, is to make it easy to use as a guestbook.
@@ -108,10 +108,10 @@ It doesn't work on empty tags, you need to at least seed it with a plain text NF
 
 ## Making your own Geo Cache? You might want some artworks to make your tag easier to recognize as a Message Board enabled tag.
 
-* Stickers (Good for round NFC tags):
+- Stickers (Good for round NFC tags):
  - http://i.imgur.com/0zbssBd.png
 
-* Credit Card Size (85.60�53.98 mm) (Contains information about installing this app):
+- Credit Card Size (85.60�53.98 mm) (Contains information about installing this app):
  - http://i.imgur.com/KLFgqL7.jpg
 
 
@@ -125,7 +125,10 @@ deaddrop, dead drop, deaddrops, dead drops, nfc message board
 
 # version notes
 
-## V2.3.2.3
+## V2.3.4
+Adjusted minimum target to gingerbread V2.3.3 , since there are still phones out there that uses it. Might as well see if they can use it, and not to leave them missing out on the fun.
+
+## V2.3.3
 Fixed the header title not appearing on tag creation, a crash bug, and also added a readme section.
 
 ## V2.3.1

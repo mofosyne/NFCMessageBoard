@@ -455,11 +455,12 @@ public class MainScreen extends ActionBarActivity {
         mTextView.setText(text);
         // Let's prettify it!
         changeLineinView_TITLESTYLE(mTextView, "# ", 0xfff4585d, 2f); // Primary Header
+        changeLineinView(mTextView, "\n# ", 0xFFf4589c, 1.8f); // Secondary Primary Header
         changeLineinView(mTextView, "\n## ", 0xFFF4A158, 1.2f); // Secondary Header
         changeLineinView(mTextView, "\n---", 0xFFF4A158, 1.2f); // Horizontal Rule
         changeLineinView(mTextView, "\n>",   0xFF89e24d, 0.9f); // Block Quotes
-        changeLineinView(mTextView, "\n - ", 0xFFA74DE3, 1f);   // Classic Markdown List
-        changeLineinView(mTextView, "\n- ", 0xFFA74DE3, 1f);   // NonStandard List
+        changeLineinView(mTextView, "\n - ", 0xFFA74DE3, 1f);   // Second level Markdown List
+        changeLineinView(mTextView, "\n- ", 0xFFA74DE3, 1f);   // First level List
 
         //spanSetterInView(String startTarget, String endTarget, int typefaceStyle, String fontFamily,TextView tv, int colour, float size)
         // Limitation of spanSetterInView. Well its not a regular expression... so can't exactly have * list, and *bold* at the same time.
