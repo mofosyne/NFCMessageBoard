@@ -113,6 +113,8 @@ It doesn't work on empty tags, you need to at least seed it with a plain text NF
 
 - Credit Card Size (85.60�53.98 mm) (Contains information about installing this app):
  - http://i.imgur.com/KLFgqL7.jpg
+ 
+- Couple more like pdf sheets etc... https://github.com/mofosyne/NFCMessageBoard/tree/master/app/src/Artwork
 
 
 # keywords:
