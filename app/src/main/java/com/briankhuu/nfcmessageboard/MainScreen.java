@@ -152,12 +152,12 @@ public class MainScreen extends ActionBarActivity {
         // Setting up NFC (You need to have NFC and you need to enable it to use.
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this); // Grabs the reference for current NfcAdapter used by the system
         if (mNfcAdapter == null) {
-            Toast.makeText(this, "This device doesn't support NFC.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "This device does not support NFC.", Toast.LENGTH_LONG).show();
             finish(); // Stop here, we definitely need NFC
             return;
         }
         if (!mNfcAdapter.isEnabled()) {
-            Toast.makeText(this, "NFC is disabled. Please enable.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "NFC is disabled.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -237,9 +237,9 @@ public class MainScreen extends ActionBarActivity {
         //Toast.makeText(ctx, ":D", Toast.LENGTH_LONG ).show();
 
         if (armed_write_to_empty_tag) {
-            Toast.makeText(ctx, "Please disable 'New Tag Creation Mode', before posting normal messages.", Toast.LENGTH_LONG ).show();
+            Toast.makeText(ctx, "Disable 'New tag creation mode' to write messages.", Toast.LENGTH_LONG ).show();
         }else{
-            infoDisp.setText("Please Tap To Write Your Message");
+            infoDisp.setText("Tap to write message");
             armed_nfc_write = true;
         }
         //add_message();
@@ -247,6 +247,7 @@ public class MainScreen extends ActionBarActivity {
 
     /*
         Restore Tag Content Button (Good when the occational write bug occours)
+        * Disabled in the menu until it can be improved to work correctly.
      */
     public void restoreTagButton(View view){
         if (armed_write_to_restore_tag == false){
@@ -292,6 +293,7 @@ public class MainScreen extends ActionBarActivity {
          http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
           */
         // We want to include a reference to the app, for those who don't have one.
+        // This way, their phones will open this app when a tag encoded with this app is used.
         String arrPackageName = "com.briankhuu.nfcmessageboard";
         final int AAR_RECORD_BYTE_LENGTH = 50; // I guess i suck at byte counting. well at least this should still work. This approach does lead to wasted space however.
         //infoMsg = "\n\n---\n To post here. Use the "NFC Messageboard" app: https://play.google.com/store/search?q=NFC%20Message%20Board ";
@@ -334,12 +336,12 @@ public class MainScreen extends ActionBarActivity {
             if(tag==null){
                 Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
             }else{
-                String new_entry = "Hello World! Yo";
+                String new_entry = "Hello World!";
                 // Get current time for timestamping
                 String dateStamp_entry;
                 boolean enableTimestamp = CheckBox_enable_timestamp.isChecked();
                 if (enableTimestamp) {
-                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
+                    DateFormat df = new SimpleDateFormat("ddMMMyy 'at' HH:mm"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
                     df.setTimeZone(TimeZone.getTimeZone("UTC"));
                     String dateStamp = df.format(new Date());
                     dateStamp_entry = dateStamp;
@@ -389,7 +391,7 @@ public class MainScreen extends ActionBarActivity {
                 write(new_entry,tag);
                 // Clear the message field. Name field is left alone. And all is done.
                 entry_msg.setText("");
-                infoDisp.setText("Message Written. Thank You.");
+                infoDisp.setText("Message Written.");
                 // Lets vibrate!
                 long[] pattern = {0, 200, 200, 200, 200, 200, 200};
                 vibrator.vibrate(pattern,-1);
@@ -397,13 +399,13 @@ public class MainScreen extends ActionBarActivity {
                 updateMainDisplay(new_entry);
                 // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
-                infoDisp.setText("SUCCESS! New Tag Created");
+                infoDisp.setText("New Tag Created");
             }
         } catch (IOException e) {
-            Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG) (type:IO)", Toast.LENGTH_LONG ).show();
+            Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         } catch (FormatException e) {
-            Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG)(type:Format)" , Toast.LENGTH_LONG ).show();
+            Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         }
 
@@ -726,7 +728,7 @@ public class MainScreen extends ActionBarActivity {
                     // Write to tag
                     write(message,tag);
 
-                    infoDisp.setText("New tag created! Thank You.");
+                    infoDisp.setText("New tag created.");
                     // Lets vibrate!
                     long[] pattern = {0, 200, 200, 200, 200, 200, 200};
                     vibrator.vibrate(pattern,-1);
@@ -736,14 +738,14 @@ public class MainScreen extends ActionBarActivity {
                     Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
                 }
             } catch (IOException e) {
-                Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG) (type:IO)", Toast.LENGTH_LONG ).show();
+                Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_LONG ).show();
                 e.printStackTrace();
             } catch (FormatException e) {
-                Toast.makeText(ctx, "D: Cannot Write To Tag. (Tip: Hold up to tag and press ADD MSG)(type:Format)" , Toast.LENGTH_LONG ).show();
+                Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_LONG ).show();
                 e.printStackTrace();
             }
             // Success Message:
-            infoDisp.setText("New Message Board Tag Created - Now disabling new tag write mode. Tap again to confirm content");
+            infoDisp.setText("New Message Board Tag Created");
             // Let's revert back to normal behaviour
             armed_write_to_empty_tag = false;
             armed_write_to_restore_tag = false;
@@ -823,7 +825,7 @@ public class MainScreen extends ActionBarActivity {
             tagID_Disp.setText("TAG ID: 0x"+tagID_string);
 
             //display technical info
-            tagInfoDisp.setText("tag ID: "+ tagID_string +" | tag size: " + tag_size + " | writeable?: " + Boolean.toString(writable) + " | tag type: " + type + " | recTypes: " + TextUtils.join(",", recTypes));
+            tagInfoDisp.setText("ID: "+ tagID_string +" \nSize: " + tag_size + " \nWrite: " + Boolean.toString(writable) + " \nType: " + type + " \nRecTypes: " + TextUtils.join(",", recTypes));
 
             //Alert user if tag is write protected
             if (!writable){
@@ -917,6 +919,10 @@ public class MainScreen extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
+            /*
+             * Removed because there's now a built-in way to make a new tag,
+             * and there's no reason to tell the user. Just clutter.
+             * 
             case R.id.creating_a_tag:
                 // show the dialog window
                 new AlertDialog.Builder(this)
@@ -929,15 +935,16 @@ public class MainScreen extends ActionBarActivity {
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
                 return true;
+                */
             case R.id.write_new_tag:
-                infoDisp.setText("New tag writing mode - !!Armed!! - Any text in message field will be used as the header message. Please tap on empty NFC tag.");
-                Toast.makeText(ctx, "Please Tap To Create New Message Board Tag", Toast.LENGTH_LONG ).show();
+                infoDisp.setText("Tap To Create New Message Board Tag.");
+                Toast.makeText(ctx, "New tag mode.", Toast.LENGTH_LONG ).show();
                 armed_write_to_empty_tag = true;
                 resetForegroundDispatch();
                 return true;
             case R.id.cancel_write_new_tag:
-                infoDisp.setText("New tag writing mode - Disarmed");
-                Toast.makeText(ctx, "Disarmed", Toast.LENGTH_LONG ).show();
+                infoDisp.setText("Tap to write message.");
+                Toast.makeText(ctx, "Normal mode.", Toast.LENGTH_LONG ).show();
                 armed_write_to_empty_tag = false;
                 resetForegroundDispatch();
                 return true;
