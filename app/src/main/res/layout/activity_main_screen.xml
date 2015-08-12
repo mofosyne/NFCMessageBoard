@@ -88,7 +88,8 @@
 
 
 
-    <!-- Restore System -->
+    <!-- Restore System.
+        Not used currently because it clutters the UI and doesn't work correctly.
 
     <View
         android:layout_width="fill_parent"
@@ -108,7 +109,7 @@
         android:id="@+id/restoreTag"
         android:onClick="restoreTagButton"
         android:layout_weight="0.88" />
-
+    -->
     <!-- Future Tag content upload system System -->
     <!-- TODO: Tag content upload system System :: http://stackoverflow.com/questions/2201917/how-can-i-open-a-url-in-androids-web-browser-from-my-application -->
 
