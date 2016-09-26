@@ -143,7 +143,7 @@ public class writingToTextTag extends AppCompatActivity {
         tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         Toast.makeText(ctx, "Writing tag", Toast.LENGTH_LONG ).show();
         try {
-            if(tag==null){
+            if(tag==null){  // We expect that a tag has been detected
                 Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
             }else{
                 String message = "";
@@ -188,46 +188,7 @@ public class writingToTextTag extends AppCompatActivity {
         //resetForegroundDispatch();
 
 
-        return; // TODO: work out what other stuff needs to go here...
-
-
-        // TODO: check if we should cannibalise anything here.
-        /*
-            So some useful tag info
-            http://stackoverflow.com/questions/9971820/how-to-read-detected-nfc-tag-ndef-content-details-in-android
-         */
-        if (tag != null) {
-            // get NDEF tag details
-            Ndef ndefTag = Ndef.get(tag);
-            tag_size = ndefTag.getMaxSize();         // tag size
-            boolean writable = ndefTag.isWritable(); // is tag writable?
-            String type = ndefTag.getType();         // tag type
-
-            // get NDEF message details
-            NdefMessage ndefMesg = ndefTag.getCachedNdefMessage();
-            NdefRecord[] ndefRecords = ndefMesg.getRecords();
-            int len = ndefRecords.length;
-            String[] recTypes = new String[len];     // will contain the NDEF record types
-            for (int i = 0; i < len; i++) {
-                recTypes[i] = new String(ndefRecords[i].getType());
-            }
-
-            // Get Tag ID
-            tagID_string = bytesToHex(tag.getId());
-            tagID_Disp.setText("TAG ID: 0x"+tagID_string);
-
-            //display technical info
-            tagInfoDisp.setText("ID: "+ tagID_string +" \nSize: " + tag_size + " \nWrite: " + Boolean.toString(writable) + " \nType: " + type + " \nRecTypes: " + TextUtils.join(",", recTypes));
-
-            //Alert user if tag is write protected
-            if (!writable){
-                infoDisp.setText(getString(R.string.infoDisp_locked));
-                Toast.makeText(ctx, ctx.getString(R.string.locked_tag) , Toast.LENGTH_LONG ).show();
-            } else {
-                infoDisp.setText(getString(R.string.infoDisp_writable));
-                Toast.makeText(ctx, ctx.getString(R.string.writable_tag) , Toast.LENGTH_LONG ).show();
-            }
-        }
+        return;
 
     }
 
