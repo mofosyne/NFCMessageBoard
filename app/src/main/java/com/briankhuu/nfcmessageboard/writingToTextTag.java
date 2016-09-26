@@ -1,7 +1,18 @@
+/*
+*
+* TODO: GIVE THIS A SHOT. IT HAS GOOD INFO
+* http://www.jessechen.net/blog/how-to-nfc-on-the-android-platform/
+*
+*
+* */
+
+
+
 package com.briankhuu.nfcmessageboard;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.FormatException;
@@ -17,9 +28,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 public class writingToTextTag extends AppCompatActivity {
     static boolean write_mode = false;
+
+    // Activity context
+    Context ctx;
 
 
     // Tag reference
@@ -39,7 +54,7 @@ public class writingToTextTag extends AppCompatActivity {
 
 
 
-    /*
+    /****************************************************************************************************************************************************************
     ForeGround Dispatch
     */
 
@@ -118,7 +133,7 @@ public class writingToTextTag extends AppCompatActivity {
         setupForegroundDispatch(this, mNfcAdapter);
     }
 
-    /*
+    /****************************************************************************************************************************************************************
         INTENT HANDLING
      */
 
@@ -135,8 +150,10 @@ public class writingToTextTag extends AppCompatActivity {
         return new String(hexChars);
     }
 
-    private void handleIntent(Intent intent) {
 
+
+    // TODO: Some way to auto verify and rewrite if tag verification fails
+    private void handleIntent(Intent intent) {
         /*
         *  Create new tag mode:
         * */
@@ -147,27 +164,10 @@ public class writingToTextTag extends AppCompatActivity {
                 Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
             }else{
                 String message = "";
-                if (armed_write_to_restore_tag) { // Is this to restore a broken tag?
-                    mTextView = (TextView) findViewById(R.id.textView_maindisplay);
-                    // Get the original Tag content
-                    message = mTextView.getText().toString();
-                } else {
-                    // Get the object for message field
-                    entry_msg = (TextView) findViewById(R.id.edit_msg);
-                    // Get the text
-                    message = "# " + entry_msg.getText().toString() + "\n";
-                    // Clear the message field. Name field is left alone. And all is done.
-                    entry_msg.setText("");
-                }
+                // This forms the new text message entry... // TODO: you would get the message here
+                message = "# " + entry_msg.getText().toString() + "\n";
                 // Write to tag
                 write(message,tag);
-
-                infoDisp.setText("New tag created.");
-                // Lets vibrate!
-                long[] pattern = {0, 200, 200, 200, 200, 200, 200};
-                vibrator.vibrate(pattern,-1);
-                // Update the display with what was posted to make user experience more responsive
-                mTextView.setText(message);
                 // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             }
@@ -178,19 +178,153 @@ public class writingToTextTag extends AppCompatActivity {
             Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         }
-        // Success Message:
-        infoDisp.setText("New Message Board Tag Created");
-        // Let's revert back to normal behaviour
-        armed_write_to_empty_tag = false;
-        armed_write_to_restore_tag = false;
         // commented away, because I think foreground dispatch on activation, actually pauses the activity. So this is not really needed.
         // Note: I think activity is paused on these situation: change scree, dialog, and foreground dispatch event.
         //resetForegroundDispatch();
 
-
         return;
-
     }
+
+
+    /****************************************************************************************************************************************************************
+        CREATE AND WRITE RECORDS
+        --> createRecord() , truncateWhenUTF8() , write()
+     */
+
+    // Used in write()
+    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
+        /*
+            Note: might want to use "NdefRecord createTextRecord (String languageCode, String text)" instead from NdefRecord.createTextRecord()
+
+         */
+        //create the message in according with the standard
+        String lang = "en";
+        byte[] textBytes = text.getBytes();
+        byte[] langBytes = lang.getBytes("US-ASCII");
+        int langLength = langBytes.length;
+        int textLength = textBytes.length;
+
+        byte[] payload = new byte[1 + langLength + textLength];
+        payload[0] = (byte) langLength;
+
+        // copy langbytes and textbytes into payload
+        System.arraycopy(langBytes, 0, payload, 1, langLength);
+        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
+
+        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
+        return recordNFC;
+    }
+
+    // http://stackoverflow.com/questions/119328/how-do-i-truncate-a-java-string-to-fit-in-a-given-number-of-bytes-once-utf-8-en
+    public static String truncateWhenUTF8(String s, int maxBytes) {
+        int b = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+
+            // ranges from http://en.wikipedia.org/wiki/UTF-8
+            int skip = 0;
+            int more;
+            if (c <= 0x007f) {
+                more = 1;
+            }
+            else if (c <= 0x07FF) {
+                more = 2;
+            }
+            else if (c <= 0xd7ff) {
+                more = 3;
+            }
+            else if (c <= 0xDFFF) {
+                // surrogate area, consume next char as well
+                more = 4;
+                skip = 1;
+            } else {
+                more = 3;
+            }
+
+            if (b + more > maxBytes) {
+                return s.substring(0, i);
+            }
+            b += more;
+            i += skip;
+        }
+        return s;
+    }
+
+
+    private void write(String text, Tag tag) throws IOException, FormatException {
+        /*
+         http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
+          */
+        // We want to include a reference to the app, for those who don't have one.
+        // This way, their phones will open this app when a tag encoded with this app is used.
+        String arrPackageName = "com.briankhuu.nfcmessageboard";
+        final int AAR_RECORD_BYTE_LENGTH = 50; // I guess i suck at byte counting. well at least this should still work. This approach does lead to wasted space however.
+        //infoMsg = "\n\n---\n To post here. Use the "NFC Messageboard" app: https://play.google.com/store/search?q=NFC%20Message%20Board ";
+
+
+        // Trim to size (for now this is just a dumb trimmer...) (Later on, you want to remove whole post first
+        // Seem that header and other things takes 14 chars. For safety. Lets just remove 20.
+        // 0 (via absolute value) < valid entry size < Max Tag size
+        final int NDEF_RECORD_HEADER_SIZE = 6;
+        final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;
+        int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
+        if (text.length() >= maxTagByteLength ){ // Write like normal if content to write will fit without modification
+            // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
+            text = truncateWhenUTF8(text, maxTagByteLength);
+        }
+
+        // Write tag
+        //NdefRecord[] records = { createRecord(text), aarNdefRecord };
+        NdefMessage message = new NdefMessage(new NdefRecord[]{
+                createRecord(text)
+                ,NdefRecord.createApplicationRecord(arrPackageName)
+        });
+        Ndef ndef = Ndef.get(tag);
+        ndef.connect();
+        ndef.writeNdefMessage(message);
+        ndef.close();
+    }
+
+    /*
+    //TODO: See if you can adopt something like this one for write()... try and give this one a shot
+    //    From http://www.jessechen.net/blog/how-to-nfc-on-the-android-platform/* Writes an NdefMessage to a NFC tag
+
+    public static boolean writeTag(NdefMessage message, Tag tag) {
+        int size = message.toByteArray().length;
+        try {
+            Ndef ndef = Ndef.get(tag);
+            if (ndef != null) {
+                ndef.connect();
+                if (!ndef.isWritable()) {
+                    return false;
+                }
+                if (ndef.getMaxSize() < size) {
+                    return false;
+                }
+                ndef.writeNdefMessage(message);
+                return true;
+            } else {
+                NdefFormatable format = NdefFormatable.get(tag);
+                if (format != null) {
+                    try {
+                        format.connect();
+                        format.format(message);
+                        return true;
+                    } catch (IOException e) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    */
+
+
+
 
 
 }
