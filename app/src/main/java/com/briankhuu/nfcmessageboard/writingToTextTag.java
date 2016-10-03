@@ -252,6 +252,14 @@ public class writingToTextTag extends AppCompatActivity {
 
 
     private void write(String text, Tag tag) throws IOException, FormatException {
+        int tag_size;
+        if (tag != null) { // Was aiming to find a way to get the size of the tag
+            // get NDEF tag details
+            Ndef ndefTag = Ndef.get(tag);
+            tag_size = ndefTag.getMaxSize();         // tag size
+            boolean writable = ndefTag.isWritable(); // is tag writable?
+            String type = ndefTag.getType();         // tag type
+        }
         /*
          http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
           */
