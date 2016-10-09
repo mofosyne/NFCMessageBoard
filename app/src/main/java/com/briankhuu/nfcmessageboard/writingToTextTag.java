@@ -30,7 +30,7 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class writingToTextTag extends AppCompatActivity {
+public class WritingToTextTag extends AppCompatActivity {
     static boolean write_mode = false;
 
     // Activity context
@@ -46,10 +46,36 @@ public class writingToTextTag extends AppCompatActivity {
     //public static final String TAG = "NfcTest"; // Don't think this is required
 
 
+    // Information that we want to write to the tag
+    public enum Message_mode {
+        SIMPLE_TXT_MODE,        // Legacy support for txt only NFC bbs tags (could try doing something like "sms speak compression"
+        STRUCTURED_TXT_MODE     // This is envisioned to be for tags that stores messages in a packed binary method (e.g. think messagepack) to make it easier to tag metadata to it
+    }
+
+    public Message_mode message_mode;
+    public String message_str;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_writing_to_text_tag);
+
+        /*
+        * Read and process incoming android intent
+        * */
+        // Select mode
+        String message_tag_type_str = getIntent().getStringExtra("tag_type");
+        if ( message_tag_type_str.equals("txt") ){
+            message_mode = Message_mode.SIMPLE_TXT_MODE;
+        }
+        if ( message_tag_type_str.equals("struct-text") ){
+            message_mode = Message_mode.STRUCTURED_TXT_MODE;
+        }
+
+        // fill in the intent with message that the user want to write to the tag
+        message_str = getIntent().getStringExtra("tag_content");
+
     }
 
 
@@ -165,7 +191,7 @@ public class writingToTextTag extends AppCompatActivity {
             }else{
                 String message = "";
                 // This forms the new text message entry... // TODO: you would get the message here
-                message = "# " + entry_msg.getText().toString() + "\n";
+                message = message_str;
                 // Write to tag
                 write(message,tag);
                 // Let user know it's all gravy
@@ -295,7 +321,9 @@ public class writingToTextTag extends AppCompatActivity {
 
     /*
     //TODO: See if you can adopt something like this one for write()... try and give this one a shot
-    //    From http://www.jessechen.net/blog/how-to-nfc-on-the-android-platform/* Writes an NdefMessage to a NFC tag
+    //    From http://www.jessechen.net/blog/how-to-nfc-on-the-android-platform
+
+    /* Writes an NdefMessage to a NFC tag
 
     public static boolean writeTag(NdefMessage message, Tag tag) {
         int size = message.toByteArray().length;

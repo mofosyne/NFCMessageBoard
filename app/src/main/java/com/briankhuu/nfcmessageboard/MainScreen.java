@@ -243,6 +243,12 @@ public class MainScreen extends ActionBarActivity {
             armed_nfc_write = true;
         }
         //add_message();
+
+        // TODO: make this work then remove the above.
+        /* Work In Progress replacement for tag append */
+        Intent intent_obj = new Intent(this, WritingToTextTag.class);
+        intent_obj.putExtra("tag_type", "txt");
+        intent_obj.putExtra("tag_content", "Here is some example content");
     }
 
     /*
