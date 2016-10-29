@@ -236,12 +236,14 @@ public class MainScreen extends ActionBarActivity {
         // Which is made easier by the fact that this app already auto read the tag on touch.
         //Toast.makeText(ctx, ":D", Toast.LENGTH_LONG ).show();
 
+        /*
         if (armed_write_to_empty_tag) {
             Toast.makeText(ctx, "Disable 'New tag creation mode' to write messages.", Toast.LENGTH_LONG ).show();
         }else{
             infoDisp.setText("Tap to write message");
             armed_nfc_write = true;
         }
+        */
         //add_message();
 
         // TODO: make this work then remove the above.
