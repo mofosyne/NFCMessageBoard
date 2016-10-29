@@ -30,6 +30,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import static java.sql.Types.NULL;
+
 public class WritingToTextTag extends AppCompatActivity {
     static boolean write_mode = false;
 
@@ -66,15 +68,20 @@ public class WritingToTextTag extends AppCompatActivity {
         * */
         // Select mode
         String message_tag_type_str = getIntent().getStringExtra("tag_type");
-        if ( message_tag_type_str.equals("txt") ){
-            message_mode = Message_mode.SIMPLE_TXT_MODE;
-        }
-        if ( message_tag_type_str.equals("struct-text") ){
-            message_mode = Message_mode.STRUCTURED_TXT_MODE;
+        if (message_tag_type_str != null)
+        {
+            if ( message_tag_type_str.equals("txt") )
+            {
+                message_mode = Message_mode.SIMPLE_TXT_MODE;
+            }
+            if ( message_tag_type_str.equals("struct-text") )
+            {
+                message_mode = Message_mode.STRUCTURED_TXT_MODE;
+            }
+            // fill in the intent with message that the user want to write to the tag
+            message_str = getIntent().getStringExtra("tag_content");
         }
 
-        // fill in the intent with message that the user want to write to the tag
-        message_str = getIntent().getStringExtra("tag_content");
 
     }
 
