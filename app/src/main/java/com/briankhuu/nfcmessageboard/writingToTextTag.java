@@ -63,10 +63,8 @@ public class WritingToTextTag extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_writing_to_text_tag);
 
-        /* Setup
-            NFC
-            Adapter
-         */
+        /* Setup NFC Adapter
+        * */
         // Setting up NFC (You need to have NFC and you need to enable it to use.
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this); // Grabs the reference for current NfcAdapter used by the system
         if (mNfcAdapter == null) {
@@ -81,8 +79,7 @@ public class WritingToTextTag extends AppCompatActivity {
         }
 
 
-        /*
-        * Read and process incoming android intent
+        /* Read and process incoming android inten
         * */
         // Select mode
         String message_tag_type_str = getIntent().getStringExtra("tag_type");
