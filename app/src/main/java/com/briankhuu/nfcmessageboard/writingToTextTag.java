@@ -63,6 +63,24 @@ public class WritingToTextTag extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_writing_to_text_tag);
 
+        /* Setup
+            NFC
+            Adapter
+         */
+        // Setting up NFC (You need to have NFC and you need to enable it to use.
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this); // Grabs the reference for current NfcAdapter used by the system
+        if (mNfcAdapter == null) {
+            Toast.makeText(this, "This device does not support NFC.", Toast.LENGTH_LONG).show();
+            finish(); // Stop here, we definitely need NFC
+            return;
+        }
+        if (!mNfcAdapter.isEnabled()) {
+            Toast.makeText(this, "NFC is disabled.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+
         /*
         * Read and process incoming android intent
         * */
@@ -115,12 +133,12 @@ public class WritingToTextTag extends AppCompatActivity {
     public static void setupForegroundDispatch(final Activity activity, NfcAdapter adapter)
     {
         // Guard
-        if ((activity != null)||(adapter == null))
+        if ((activity == null)||(adapter == null))
         {
             Toast.makeText(activity, "setupForegroundDispatch:"
-                            +(activity!=null?"null activity,":"")
-                            +(adapter!=null?"null adapter,":"" )
-                    , Toast.LENGTH_LONG).show();
+                            +(activity==null?"null activity,":"")
+                            +(adapter==null?"null adapter,":"" )
+                    , Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -156,12 +174,12 @@ public class WritingToTextTag extends AppCompatActivity {
     public static void stopForegroundDispatch(final Activity activity, NfcAdapter adapter)
     {
         // Guard
-        if ((activity != null)||(adapter == null))
+        if ((activity != null)||(adapter != null))
         {
-            Toast.makeText(activity, "stopForegroundDispatch:"
-                            +(activity!=null?"null activity,":"")
-                            +(adapter!=null?"null adapter,":"" )
-                    , Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "setupForegroundDispatch:"
+                            +(activity==null?"null activity,":"")
+                            +(adapter==null?"null adapter,":"" )
+                    , Toast.LENGTH_SHORT).show();
             return;
         }
         adapter.disableForegroundDispatch(activity);
