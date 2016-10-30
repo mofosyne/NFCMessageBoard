@@ -69,7 +69,7 @@ public class WritingToTextTag extends AppCompatActivity {
         // Select mode
         String message_tag_type_str = getIntent().getStringExtra("tag_type");
         if (message_tag_type_str != null)
-        {
+        {   // Intent Is Present
             if ( message_tag_type_str.equals("txt") )
             {
                 message_mode = Message_mode.SIMPLE_TXT_MODE;
@@ -80,6 +80,11 @@ public class WritingToTextTag extends AppCompatActivity {
             }
             // fill in the intent with message that the user want to write to the tag
             message_str = getIntent().getStringExtra("tag_content");
+        }
+        else
+        {   // No intent was detected. Provide default content (good for testing)
+            message_mode = Message_mode.SIMPLE_TXT_MODE;
+            message_str = "This is an example text content to be included into this tag";
         }
 
 
@@ -107,9 +112,19 @@ public class WritingToTextTag extends AppCompatActivity {
      * @param activity The corresponding {@link Activity} requesting the foreground dispatch.
      * @param adapter The {@link NfcAdapter} used for the foreground dispatch.
      */
-    public static void setupForegroundDispatch(final Activity activity, NfcAdapter adapter) {
-        write_mode = true;
+    public static void setupForegroundDispatch(final Activity activity, NfcAdapter adapter)
+    {
+        // Guard
+        if ((activity != null)||(adapter == null))
+        {
+            Toast.makeText(activity, "setupForegroundDispatch:"
+                            +(activity!=null?"null activity,":"")
+                            +(adapter!=null?"null adapter,":"" )
+                    , Toast.LENGTH_LONG).show();
+            return;
+        }
 
+        write_mode = true;
 
         final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -138,7 +153,17 @@ public class WritingToTextTag extends AppCompatActivity {
      * @param activity The corresponding BaseActivity requesting to stop the foreground dispatch.
      * @param adapter The {@link NfcAdapter} used for the foreground dispatch.
      */
-    public static void stopForegroundDispatch(final Activity activity, NfcAdapter adapter) {
+    public static void stopForegroundDispatch(final Activity activity, NfcAdapter adapter)
+    {
+        // Guard
+        if ((activity != null)||(adapter == null))
+        {
+            Toast.makeText(activity, "stopForegroundDispatch:"
+                            +(activity!=null?"null activity,":"")
+                            +(adapter!=null?"null adapter,":"" )
+                    , Toast.LENGTH_LONG).show();
+            return;
+        }
         adapter.disableForegroundDispatch(activity);
     }
 
@@ -146,7 +171,8 @@ public class WritingToTextTag extends AppCompatActivity {
     *  RESUME AND PAUSE SECTION
     * */
     @Override
-    protected void onResume() { // App resuming from background        /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
+    protected void onResume()
+    { // App resuming from background        /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
         super.onResume();
         setupForegroundDispatch(this, mNfcAdapter);
     }
