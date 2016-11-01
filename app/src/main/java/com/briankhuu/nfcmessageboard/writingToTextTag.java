@@ -414,6 +414,7 @@ public class WritingToTextTag extends AppCompatActivity
                 text = truncateWhenUTF8(text, maxTagByteLength);
             }
 
+            // Create NDEF
             text_NdefRecord = createRecord(text);
         }
 
@@ -424,7 +425,11 @@ public class WritingToTextTag extends AppCompatActivity
                     ,
                     androidAAR_NdefRecord
             });
+
+            // Generate an NDEF Message
             Ndef ndef = Ndef.get(tag);
+
+            // Connect and Write to the tag
             ndef.connect();
             ndef.writeNdefMessage(message);
             ndef.close();
