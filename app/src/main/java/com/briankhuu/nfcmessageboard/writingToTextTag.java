@@ -47,6 +47,21 @@ public class WritingToTextTag extends AppCompatActivity
     Tag tag;
     private NfcAdapter mNfcAdapter; // Sets up an empty object of type NfcAdapter
 
+
+    // Information that we want to write to the tag
+    public enum MessageWriteStatus_Enum
+    {
+        INITIALISE,             //
+        WRITE_ATTEMPTED,                // Successfully written into tag
+        SUCCESS,                // Successfully written into tag
+        FAILED_BECAUSE_IO_EXCEPTION,
+        FAILED_BECAUSE_FORMAT_EXCEPTION,
+        FAILED_BECAUSE_TAG_LOST,
+        FAILED_BECAUSE_NULL_NDEF,
+        FAILED_BECAUSE_INSUFFICIENT_SPACE,
+        FAILED_BECAUSE_WRITE_PROTECTED         // Tag is write protected so just report and quit...
+    }
+
     // Information that we want to write to the tag
     public enum MessageMode_Enum
     {
@@ -56,9 +71,9 @@ public class WritingToTextTag extends AppCompatActivity
 
     public class TagContent
     {
-        boolean             successfulWrite_flag    = false;
-        MessageMode_Enum    message_mode            = MessageMode_Enum.SIMPLE_TXT_MODE;
-        String              message_str             = "";
+        MessageWriteStatus_Enum     successfulWrite_status    = MessageWriteStatus_Enum.INITIALISE;
+        MessageMode_Enum            message_mode            = MessageMode_Enum.SIMPLE_TXT_MODE;
+        String                      message_str             = "";
     }
 
     TagContent tagContent = new TagContent();
@@ -276,23 +291,8 @@ public class WritingToTextTag extends AppCompatActivity
 
         Toast.makeText(ctx, "Writing tag", Toast.LENGTH_LONG ).show();
 
-        try
-        {   //  Attempt to
-                // Write to tag
-                write(this.tagContent.message_str,tag);
-                // Let user know it's all gravy
-                Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
-        }
-        catch (IOException e)
-        {   // IO Error
-            Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_LONG ).show();
-            e.printStackTrace();
-        }
-        catch (FormatException e)
-        {   // Format Error
-            Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_LONG ).show();
-            e.printStackTrace();
-        }
+        writeMessageTag(this.tagContent,tag);
+
 
         return;
     }
@@ -317,6 +317,7 @@ public class WritingToTextTag extends AppCompatActivity
         int langLength = langBytes.length;
         int textLength = textBytes.length;
 
+        // Payload
         payload = new byte[1 + langLength + textLength];
         payload[0] = (byte) langLength;
 
@@ -324,6 +325,7 @@ public class WritingToTextTag extends AppCompatActivity
         System.arraycopy(langBytes, 0, payload, 1, langLength);
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
 
+        // Return NDEF Record
         NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
         return recordNFC;
     }
@@ -365,75 +367,146 @@ public class WritingToTextTag extends AppCompatActivity
     }
 
 
-    private void write(String text, Tag tag) throws IOException, FormatException
+    private void writeMessageTag(TagContent tagContent_input, Tag tag) //throws IOException, FormatException
     {
-        NdefRecord text_NdefRecord;
+        NdefRecord text_NdefRecord          = null;
         NdefRecord androidAAR_NdefRecord;
 
         int tag_size=0;
 
-        if ((tag == null))
-        {// Requires tag
-            Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                    +(tag==null ? "tag adapter," : "" )
-            );
-            return;
-        }
-
-        {// Tag
-            // get NDEF tag details
-            Ndef ndefTag = Ndef.get(tag);
-
-            // Get Tag Size
-            tag_size = ndefTag.getMaxSize();
-
-            // Check Tag Writability (That it is not read only)
-            if (ndefTag.isWritable() != true)
+        {
+            if ((tag == null))
             {// Requires tag
                 Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                        +" Tag Is Not Writable "
+                        +(tag==null ? "tag adapter," : "" )
                 );
                 return;
             }
-        }
 
-        {// Generate AAR Package Name
-            androidAAR_NdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
-        }
+            {// Tag
+                // get NDEF tag details
+                Ndef ndefTag = Ndef.get(tag);
 
-        {// Generate text_NdefRecord | text -->[ trim text to fit in tag ]--> text_NdefRecord
-            //  http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
-            final int AAR_RECORD_BYTE_LENGTH = 50;          // Estimated size of the AAR Record Byte, because I have no idea how to find the exact size.
-            final int NDEF_RECORD_HEADER_SIZE = 6;          // Estimated size of NDEF Record Header
-            final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;  // Estimated size of NDEF string payload header size
+                // Get Tag Size
+                tag_size = ndefTag.getMaxSize();
 
-            // Calc maximum safe text size
-            int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
-            if (text.length() >= maxTagByteLength) { // Write like normal if content to write will fit without modification
-                // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
-                text = truncateWhenUTF8(text, maxTagByteLength);
+                // Check Tag Writability (That it is not read only)
+                if (ndefTag.isWritable() != true)
+                {// Requires tag
+                    Log.e( LOGGER_TAG, "setupForegroundDispatch:"
+                            +" Tag Is Not Writable "
+                    );
+                    return;
+                }
             }
 
-            // Create NDEF
-            text_NdefRecord = createRecord(text);
+            {// Generate AAR Package Name
+                androidAAR_NdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
+            }
+
+            {// Generate text_NdefRecord (Could we use NdefRecord.createTextRecord() instead?)
+
+                // Input Message String
+                String text = tagContent_input.message_str;
+
+                //  http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
+                final int AAR_RECORD_BYTE_LENGTH = 50;          // Estimated size of the AAR Record Byte, because I have no idea how to find the exact size.
+                final int NDEF_RECORD_HEADER_SIZE = 6;          // Estimated size of NDEF Record Header
+                final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;  // Estimated size of NDEF string payload header size
+
+                // Calc maximum safe text size
+                int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
+                if (text.length() >= maxTagByteLength) { // Write like normal if content to write will fit without modification
+                    // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
+                    text = truncateWhenUTF8(text, maxTagByteLength);
+                }
+
+                // Output Ndef Record
+                try {
+                    text_NdefRecord = createRecord(text);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            {// Write tag
+                MessageWriteStatus_Enum message_write_status;
+
+                if( (text_NdefRecord == null) || (androidAAR_NdefRecord == null) )
+                {
+                    return;
+                }
+
+
+                // NdefRecord[] records = { createRecord(text), aarNdefRecord };
+                NdefMessage message = new NdefMessage(new NdefRecord[]{
+                        text_NdefRecord
+                        ,
+                        androidAAR_NdefRecord
+                });
+
+                // Connect and Write to the tag
+                message_write_status = writeNdefMessageToTag(message,tag,false);
+
+                tagContent_input.successfulWrite_status = message_write_status; // Possibly to use to retry?
+            }
         }
 
-        {// Write tag
-            //NdefRecord[] records = { createRecord(text), aarNdefRecord };
-            NdefMessage message = new NdefMessage(new NdefRecord[]{
-                    text_NdefRecord
-                    ,
-                    androidAAR_NdefRecord
-            });
-
-            // Generate an NDEF Message
-            Ndef ndef = Ndef.get(tag);
-
-            // Connect and Write to the tag
-            ndef.connect();
-            ndef.writeNdefMessage(message);
-            ndef.close();
-        }
     }
-}
+
+    public MessageWriteStatus_Enum writeNdefMessageToTag(NdefMessage message, Tag tag, boolean writeProtect)
+    {
+        try {
+            Ndef ndef = Ndef.get(tag);
+            if (ndef != null) {
+                ndef.connect(); // ( Throws: IOException )
+
+                if (!ndef.isWritable())
+                {
+                    Toast.makeText(ctx, "Cannot Write To Tag. Tag is Read Only", Toast.LENGTH_SHORT ).show();
+                    return MessageWriteStatus_Enum.FAILED_BECAUSE_WRITE_PROTECTED; // Tag is read-only;
+                }
+
+                if (ndef.getMaxSize() < message.toByteArray().length)
+                {
+                    Toast.makeText(ctx, "Cannot Write To Tag. Message is too big", Toast.LENGTH_SHORT ).show();
+                    return MessageWriteStatus_Enum.FAILED_BECAUSE_INSUFFICIENT_SPACE; // "size error"
+                }
+
+                ndef.writeNdefMessage(message); // ( Throws: FormatException )
+
+                if ( writeProtect ==  true ) // Uses Boolean instead of boolean for nullable boolean value
+                {
+                    Toast.makeText(ctx, "Setting Tag to Write Only", Toast.LENGTH_SHORT ).show();
+                    ndef.makeReadOnly();
+                }
+
+                ndef.close(); // ( Throws: IOException )
+                Toast.makeText(ctx, "Tag Written", Toast.LENGTH_SHORT ).show();
+
+            } else {
+                return MessageWriteStatus_Enum.FAILED_BECAUSE_NULL_NDEF;// writeTag: ndef==null!
+            }
+        }
+        catch (IOException e)
+        {   // IO Error (In ndef.connect or ndef.close )
+            Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_SHORT ).show();
+            e.printStackTrace();
+            return MessageWriteStatus_Enum.FAILED_BECAUSE_IO_EXCEPTION;
+        }
+        catch (FormatException e)
+        {   // Format Error (In ndef.writeNdefMessage)
+            Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_SHORT ).show();
+            e.printStackTrace();
+            return MessageWriteStatus_Enum.FAILED_BECAUSE_FORMAT_EXCEPTION;
+        }
+
+        return MessageWriteStatus_Enum.WRITE_ATTEMPTED;
+    }
+
+
+
+
+
+} /* END OF ACTIVITY CLASS */
 
