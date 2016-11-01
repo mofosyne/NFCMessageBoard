@@ -28,19 +28,11 @@ import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
-import static java.sql.Types.NULL;
 
 public class WritingToTextTag extends AppCompatActivity {
     static String arrPackageName = "com.briankhuu.nfcmessageboard";
@@ -50,7 +42,6 @@ public class WritingToTextTag extends AppCompatActivity {
 
     // Activity context
     Context ctx;
-
 
     // Tag reference
     Tag tag;
@@ -62,14 +53,22 @@ public class WritingToTextTag extends AppCompatActivity {
 
 
     // Information that we want to write to the tag
-    public enum Message_mode {
+    public enum MessageMode_Enum {
         SIMPLE_TXT_MODE,        // Legacy support for txt only NFC bbs tags (could try doing something like "sms speak compression"
         STRUCTURED_TXT_MODE     // This is envisioned to be for tags that stores messages in a packed binary method (e.g. think messagepack) to make it easier to tag metadata to it
     }
 
-    public Message_mode message_mode;
-    public String message_str;
 
+    //public MessageMode_Enum message_modeEnum;
+    //public String message_str;
+
+    public class TagContent{
+        public boolean             successfulWrite_flag    = false;
+        public MessageMode_Enum    message_mode            = MessageMode_Enum.SIMPLE_TXT_MODE;
+        public String              message_str             = "";
+    }
+
+    TagContent tagContent = new TagContent();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,21 +101,21 @@ public class WritingToTextTag extends AppCompatActivity {
 
         if (message_tag_type_str == null)
         {   // No intent was detected. Provide default content (good for testing)
-            message_mode = Message_mode.SIMPLE_TXT_MODE;
-            message_str = "This is an example text content to be included into this tag";
+            this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
+            this.tagContent.message_str = "This is an example text content to be included into this tag";
         }
         else
         {   // Intent Is Present
             if ( message_tag_type_str.equals("txt") )
             {
-                message_mode = Message_mode.SIMPLE_TXT_MODE;
+                this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
             }
             if ( message_tag_type_str.equals("struct-text") )
             {
-                message_mode = Message_mode.STRUCTURED_TXT_MODE;
+                this.tagContent.message_mode = MessageMode_Enum.STRUCTURED_TXT_MODE;
             }
             // fill in the intent with message that the user want to write to the tag
-            message_str = getIntent().getStringExtra("tag_content");
+            this.tagContent.message_str = getIntent().getStringExtra("tag_content");
         }
 
 
@@ -272,7 +271,7 @@ public class WritingToTextTag extends AppCompatActivity {
             else
             {
                 // Write to tag
-                write(message_str,tag);
+                write(this.tagContent.message_str,tag);
                 // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
             }
