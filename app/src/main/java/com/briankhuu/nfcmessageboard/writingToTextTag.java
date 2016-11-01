@@ -46,11 +46,6 @@ public class WritingToTextTag extends AppCompatActivity
     Tag tag;
     private NfcAdapter mNfcAdapter; // Sets up an empty object of type NfcAdapter
 
-    // We have a plain text mode for historical reason.
-    public static final String MIME_TEXT_PLAIN = "text/plain";
-    //public static final String TAG = "NfcTest"; // Don't think this is required
-
-
     // Information that we want to write to the tag
     public enum MessageMode_Enum
     {
@@ -78,83 +73,95 @@ public class WritingToTextTag extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_writing_to_text_tag);
 
-        /* Activity Context For Toast to work easier!*/
+        /* Activity Context For Toast to work easier!
+        * */
+
+        // Record the activity context pointer
         ctx = this;
 
         /* Setup NFC Adapter
         * */
+
         // Setting up NFC (You need to have NFC and you need to enable it to use.
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this); // Grabs the reference for current NfcAdapter used by the system
-        if (mNfcAdapter == null) {
+
+        if (mNfcAdapter == null)
+        {   // NFC is not supported
             Toast.makeText(this, "This device does not support NFC.", Toast.LENGTH_LONG).show();
             finish(); // Stop here, we definitely need NFC
             return;
         }
-        if (!mNfcAdapter.isEnabled()) {
+
+        if (!mNfcAdapter.isEnabled())
+        {   // NFC is Disabled
             Toast.makeText(this, "NFC is disabled.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
 
-        /* Read and process incoming android inten
+        /* Read and process incoming android activity intent
         * */
+
         // Select mode
         String message_tag_type_str = getIntent().getStringExtra("tag_type");
 
         if (message_tag_type_str == null)
         {   // No intent was detected. Provide default content (good for testing)
-            this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
-            this.tagContent.message_str = "This is an example text content to be included into this tag";
+
+            // Load in default test content
+            this.tagContent.message_mode    = MessageMode_Enum.SIMPLE_TXT_MODE;
+            this.tagContent.message_str     = "This is an example text content to be included into this tag";
+
         }
         else
-        {   // Intent Is Present
-            if ( message_tag_type_str.equals("txt") )
-            {
-                this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
-            }
-            if ( message_tag_type_str.equals("struct-text") )
-            {
-                this.tagContent.message_mode = MessageMode_Enum.STRUCTURED_TXT_MODE;
-            }
+        {   // Activity Intent Is Present
+
+            // Load in content from incoming activity intent
+            if ( message_tag_type_str.equals("txt") )               this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
+            if ( message_tag_type_str.equals("struct-text") )       this.tagContent.message_mode = MessageMode_Enum.STRUCTURED_TXT_MODE;
+
             // fill in the intent with message that the user want to write to the tag
             this.tagContent.message_str = getIntent().getStringExtra("tag_content");
+
         }
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart()
+    {
         super.onStart();
     };
 
     @Override
-    protected void onRestart(){
+    protected void onRestart()
+    {
         super.onRestart();
     };
 
     @Override
     protected void onResume()
-    { // App resuming from background
-        // /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
-        super.onResume();
+    {   // App resuming from background
+        super.onResume();   // Call parent superclass. Otherwise an IllegalStateException is thrown.
         setupForegroundDispatch(this, mNfcAdapter);
     }
 
     @Override
     protected void onPause()
-    { // App sent to background (when viewing other apps etc...)
-        // /* Call this before onPause, otherwise an IllegalArgumentException is thrown as well. */
+    {   // App sent to background (when viewing other apps etc...)
         stopForegroundDispatch(this, mNfcAdapter);
-        super.onPause();
+        super.onPause();    // Call parent superclass. otherwise an IllegalArgumentException is thrown as well.
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop()
+    {
         super.onStop();
     };
 
     @Override
-    protected void onDestroy(){
+    protected void onDestroy()
+    {
         super.onDestroy();
     };
 
@@ -167,13 +174,8 @@ public class WritingToTextTag extends AppCompatActivity
 
     @Override
     protected void onNewIntent(Intent intent)
-    {
-        /**
-         * This method gets called, when a new Intent gets associated with the current activity instance.
-         * Instead of creating a new activity, onNewIntent will be called. For more information have a look
-         * at the documentation.
-         * In our case this method gets called, when the user attaches a Tag to the device.
-         */
+    {   // This is called upon new incoming intent. In this context an NFC tag is being processed
+
         // Guard
         if (intent == null)
         {
@@ -183,16 +185,18 @@ public class WritingToTextTag extends AppCompatActivity
             return;
         }
 
-        handleIntent(intent);
+        handle_NfcAdapter_Intent(intent);
     }
 
-    // Aka: enable tag write mode
     /**
      * @param activity The corresponding {@link Activity} requesting the foreground dispatch.
      * @param adapter The {@link NfcAdapter} used for the foreground dispatch.
      */
     public static void setupForegroundDispatch(final Activity activity, NfcAdapter adapter)
     {
+        final Intent        intent;
+        final PendingIntent pendingIntent;
+
         // Guard
         if ((activity == null)||(adapter == null))
         {
@@ -203,23 +207,23 @@ public class WritingToTextTag extends AppCompatActivity
             return;
         }
 
-        final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
+        // Set up Intent
+        intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
-        /* Setting up the container filter (It's the trigger)
-         */
-        IntentFilter[] filters = new IntentFilter[1];
-        String[][] techList = new String[][]{};
-        /* Fill the filter with the same settings you had in your manifest
-         */
+        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+
+        // Setting Up Intent Filter And Tech List
+        IntentFilter[]  filters     = new IntentFilter[1];
+        String[][]      techList    = new String[][]{};
+
+        // Fill the filter with the same settings you had in your manifest
         filters[0] = new IntentFilter();
         filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
         filters[0].addCategory(Intent.CATEGORY_DEFAULT);
 
-        /*
-            Put filter to the foreground dispatch.
-         */
+        // Start the Dispatch
         adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
+
     }
 
     /**
@@ -237,13 +241,14 @@ public class WritingToTextTag extends AppCompatActivity
                             );
             return;
         }
+
+        // Stop the Dispatch
         adapter.disableForegroundDispatch(activity);
     }
 
-    /*  Reset forground dispatch for tag creation purpose
-    * */
 
-    private void resetForegroundDispatch(){
+    private void resetForegroundDispatch()
+    {   // Foreground Dispatch Reset
         stopForegroundDispatch(this, mNfcAdapter);
         setupForegroundDispatch(this, mNfcAdapter);
     }
@@ -253,40 +258,39 @@ public class WritingToTextTag extends AppCompatActivity
      */
 
     // TODO: Some way to auto verify and rewrite if tag verification fails
-    private void handleIntent(Intent intent)
-    {
-        /*  Create new tag mode:
-        * */
+    private void handle_NfcAdapter_Intent(Intent intent)
+    {   // Handles any incoming NFC Adapter based intent
+
+        //  Get NFC Tag Content (returns null if not present)
         tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
+        if(tag==null)
+        {  // We expect that a tag has been detected
+            Log.e( LOGGER_TAG, "handle_NfcAdapter_Intent:"
+                    +"Intent Extra NfcAdapter.EXTRA_TAG Missing"
+            );
+            return;
+        }
+
         Toast.makeText(ctx, "Writing tag", Toast.LENGTH_LONG ).show();
+
         try
-        {
-            if(tag==null)
-            {  // We expect that a tag has been detected
-                Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
-                Log.e( LOGGER_TAG, ctx.getString(R.string.error_detected) );
-            }
-            else
-            {
+        {   //  Attempt to
                 // Write to tag
                 write(this.tagContent.message_str,tag);
                 // Let user know it's all gravy
                 Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
-            }
         }
         catch (IOException e)
-        {
+        {   // IO Error
             Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         }
         catch (FormatException e)
-        {
+        {   // Format Error
             Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_LONG ).show();
             e.printStackTrace();
         }
-        // commented away, because I think foreground dispatch on activation, actually pauses the activity. So this is not really needed.
-        // Note: I think activity is paused on these situation: change scree, dialog, and foreground dispatch event.
-        //resetForegroundDispatch();
 
         return;
     }
