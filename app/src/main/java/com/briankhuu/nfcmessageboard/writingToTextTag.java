@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WritingToTextTag extends AppCompatActivity
 {
@@ -108,10 +109,11 @@ public class WritingToTextTag extends AppCompatActivity
 
         if (message_tag_type_str == null)
         {   // No intent was detected. Provide default content (good for testing)
+            int random_number = ThreadLocalRandom.current().nextInt(0, 1000 + 1);
 
             // Load in default test content
             this.tagContent.message_mode    = MessageMode_Enum.SIMPLE_TXT_MODE;
-            this.tagContent.message_str     = "This is an example text content to be included into this tag";
+            this.tagContent.message_str     = "This is an example text content to be included into this tag ("+Integer.toString(random_number)+")";
 
         }
         else
@@ -169,8 +171,8 @@ public class WritingToTextTag extends AppCompatActivity
 
 
     /***********************************************************************************************
-        ForeGround Dispatch
-    */
+     * ForeGround Dispatch
+     * */
 
     @Override
     protected void onNewIntent(Intent intent)
@@ -253,8 +255,8 @@ public class WritingToTextTag extends AppCompatActivity
         setupForegroundDispatch(this, mNfcAdapter);
     }
 
-    /****************************************************************************************************************************************************************
-        INTENT HANDLING
+    /***********************************************************************************************
+     *  INTENT HANDLING
      */
 
     // TODO: Some way to auto verify and rewrite if tag verification fails
@@ -296,8 +298,8 @@ public class WritingToTextTag extends AppCompatActivity
     }
 
 
-    /****************************************************************************************************************************************************************
-        CREATE AND WRITE RECORDS
+    /***********************************************************************************************
+     *  CREATE AND WRITE RECORDS
         --> createRecord() , truncateWhenUTF8() , write()
      */
 
@@ -365,6 +367,9 @@ public class WritingToTextTag extends AppCompatActivity
 
     private void write(String text, Tag tag) throws IOException, FormatException
     {
+        NdefRecord text_NdefRecord;
+        NdefRecord androidAAR_NdefRecord;
+
         int tag_size=0;
 
         if ((tag == null))
@@ -375,40 +380,49 @@ public class WritingToTextTag extends AppCompatActivity
             return;
         }
 
-        {// Calc tag size?
+        {// Tag
             // get NDEF tag details
             Ndef ndefTag = Ndef.get(tag);
-            tag_size = ndefTag.getMaxSize();         // tag size
-            boolean writable = ndefTag.isWritable(); // is tag writable?
-            String type = ndefTag.getType();         // tag type
+
+            // Get Tag Size
+            tag_size = ndefTag.getMaxSize();
+
+            // Check Tag Writability (That it is not read only)
+            if (ndefTag.isWritable() != true)
+            {// Requires tag
+                Log.e( LOGGER_TAG, "setupForegroundDispatch:"
+                        +" Tag Is Not Writable "
+                );
+                return;
+            }
         }
 
-        {// text -->[ trim text to fit in tag ]--> text
-            /*
-                http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
-            */
-            // We want to include a reference to the app, for those who don't have one.
-            // This way, their phones will open this app when a tag encoded with this app is used.
-            final int AAR_RECORD_BYTE_LENGTH = 50; // I guess i suck at byte counting. well at least this should still work. This approach does lead to wasted space however.
-            //infoMsg = "\n\n---\n To post here. Use the "NFC Messageboard" app: https://play.google.com/store/search?q=NFC%20Message%20Board ";
+        {// Generate AAR Package Name
+            androidAAR_NdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
+        }
 
-            // Trim to size (for now this is just a dumb trimmer...) (Later on, you want to remove whole post first
-            // Seem that header and other things takes 14 chars. For safety. Lets just remove 20.
-            // 0 (via absolute value) < valid entry size < Max Tag size
-            final int NDEF_RECORD_HEADER_SIZE = 6;
-            final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;
+        {// Generate text_NdefRecord | text -->[ trim text to fit in tag ]--> text_NdefRecord
+            //  http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
+            final int AAR_RECORD_BYTE_LENGTH = 50;          // Estimated size of the AAR Record Byte, because I have no idea how to find the exact size.
+            final int NDEF_RECORD_HEADER_SIZE = 6;          // Estimated size of NDEF Record Header
+            final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;  // Estimated size of NDEF string payload header size
+
+            // Calc maximum safe text size
             int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
             if (text.length() >= maxTagByteLength) { // Write like normal if content to write will fit without modification
                 // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
                 text = truncateWhenUTF8(text, maxTagByteLength);
             }
+
+            text_NdefRecord = createRecord(text);
         }
 
         {// Write tag
             //NdefRecord[] records = { createRecord(text), aarNdefRecord };
             NdefMessage message = new NdefMessage(new NdefRecord[]{
-                    createRecord(text)
-                    , NdefRecord.createApplicationRecord(arrPackageName)
+                    text_NdefRecord
+                    ,
+                    androidAAR_NdefRecord
             });
             Ndef ndef = Ndef.get(tag);
             ndef.connect();
