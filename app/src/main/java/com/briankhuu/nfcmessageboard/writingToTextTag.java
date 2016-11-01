@@ -456,6 +456,8 @@ public class WritingToTextTag extends AppCompatActivity
 
     public MessageWriteStatus_Enum writeNdefMessageToTag(NdefMessage message, Tag tag, boolean writeProtect)
     {
+        NdefMessage message_read_check;
+
         try {
             Ndef ndef = Ndef.get(tag);
             if (ndef != null) {
@@ -481,7 +483,18 @@ public class WritingToTextTag extends AppCompatActivity
                     ndef.makeReadOnly();
                 }
 
+
+                // Checking
+                message_read_check = ndef.getNdefMessage(); // Read and check somehow?
+                if(message_read_check.equals(message))
+                {
+                    Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
+                    return MessageWriteStatus_Enum.SUCCESS;
+                }
+
+
                 ndef.close(); // ( Throws: IOException )
+
                 Toast.makeText(ctx, "Tag Written", Toast.LENGTH_SHORT ).show();
 
             } else {
@@ -503,9 +516,6 @@ public class WritingToTextTag extends AppCompatActivity
 
         return MessageWriteStatus_Enum.WRITE_ATTEMPTED;
     }
-
-
-
 
 
 } /* END OF ACTIVITY CLASS */
