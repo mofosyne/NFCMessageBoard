@@ -51,9 +51,10 @@ public class WritingToTextTag extends AppCompatActivity
     // Information that we want to write to the tag
     public enum MessageWriteStatus_Enum
     {
-        INITIALISE,             //
-        WRITE_ATTEMPTED,                // Successfully written into tag
-        SUCCESS,                // Successfully written into tag
+        INITIALISE,                         //
+        SUCCESS,                            // Successfully written into tag
+        FAILED,    // Could probbly just try again.
+        FAILED_BECAUSE_CONTENT_MISMATCH,    // Could probbly just try again.
         FAILED_BECAUSE_IO_EXCEPTION,
         FAILED_BECAUSE_FORMAT_EXCEPTION,
         FAILED_BECAUSE_TAG_LOST,
@@ -430,7 +431,7 @@ public class WritingToTextTag extends AppCompatActivity
             }
 
             {// Write tag
-                MessageWriteStatus_Enum message_write_status;
+                MessageWriteStatus_Enum message_write_status = MessageWriteStatus_Enum.FAILED; // Generic Fail
 
                 if( (text_NdefRecord == null) || (androidAAR_NdefRecord == null) )
                 {
@@ -445,10 +446,55 @@ public class WritingToTextTag extends AppCompatActivity
                         androidAAR_NdefRecord
                 });
 
-                // Connect and Write to the tag
-                message_write_status = writeNdefMessageToTag(message,tag,false);
+                Toast.makeText(ctx, "Attempting To Write To Tag", Toast.LENGTH_SHORT ).show();
 
+                // Maximum Five Times Retries
+                for (int i=0 ; i < 5 ; i++)
+                {
+                    message_write_status = writeNdefMessageToTag(message,tag,false);
+
+                    if ( message_write_status == MessageWriteStatus_Enum.SUCCESS )
+                        break;  // Write Successful
+
+                    // Keep trying
+                }
+
+                // Report Status
                 tagContent_input.successfulWrite_status = message_write_status; // Possibly to use to retry?
+
+                switch (message_write_status) {
+                    case INITIALISE:
+                        Toast.makeText(ctx, "FAILED: Did it not write?", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case SUCCESS:   // Can close display now
+                        Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED:    // Prompt user to tap?
+                        Toast.makeText(ctx, "Tag writing failed for unknown reason. Tap again?", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_CONTENT_MISMATCH: // Prompt User to tap again
+                        Toast.makeText(ctx, "Tag content mismatch. Tap again", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_IO_EXCEPTION:   // Exit failed
+                        Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_FORMAT_EXCEPTION: // Exit failed? (or make sure to write new NDEF?)
+                        Toast.makeText(ctx, "Cannot Write To Tag. (type:Format). Not NDEF formatted?" , Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_TAG_LOST:   // Can't trigger this yet
+                        Toast.makeText(ctx, "Lost connection to tag. Tap again.", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_NULL_NDEF:
+                        Toast.makeText(ctx, "Tag Write Failed: NULL NDEF", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_INSUFFICIENT_SPACE:
+                        Toast.makeText(ctx, "Cannot Write To Tag. Message is too big", Toast.LENGTH_SHORT ).show();
+                        break;
+                    case FAILED_BECAUSE_WRITE_PROTECTED:
+                        Toast.makeText(ctx, "Cannot Write To Tag. Tag is Read Only", Toast.LENGTH_SHORT ).show();
+                        break;
+                }
+
             }
         }
 
@@ -465,13 +511,11 @@ public class WritingToTextTag extends AppCompatActivity
 
                 if (!ndef.isWritable())
                 {
-                    Toast.makeText(ctx, "Cannot Write To Tag. Tag is Read Only", Toast.LENGTH_SHORT ).show();
                     return MessageWriteStatus_Enum.FAILED_BECAUSE_WRITE_PROTECTED; // Tag is read-only;
                 }
 
                 if (ndef.getMaxSize() < message.toByteArray().length)
                 {
-                    Toast.makeText(ctx, "Cannot Write To Tag. Message is too big", Toast.LENGTH_SHORT ).show();
                     return MessageWriteStatus_Enum.FAILED_BECAUSE_INSUFFICIENT_SPACE; // "size error"
                 }
 
@@ -486,16 +530,16 @@ public class WritingToTextTag extends AppCompatActivity
 
                 // Checking
                 message_read_check = ndef.getNdefMessage(); // Read and check somehow?
-                if(message_read_check.equals(message))
-                {
-                    Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
-                    return MessageWriteStatus_Enum.SUCCESS;
-                }
-
 
                 ndef.close(); // ( Throws: IOException )
 
-                Toast.makeText(ctx, "Tag Written", Toast.LENGTH_SHORT ).show();
+                if(message_read_check.equals(message))
+                {
+                    return MessageWriteStatus_Enum.SUCCESS;
+                }
+
+                // Content Mismatch
+                return MessageWriteStatus_Enum.FAILED_BECAUSE_CONTENT_MISMATCH;
 
             } else {
                 return MessageWriteStatus_Enum.FAILED_BECAUSE_NULL_NDEF;// writeTag: ndef==null!
@@ -503,18 +547,14 @@ public class WritingToTextTag extends AppCompatActivity
         }
         catch (IOException e)
         {   // IO Error (In ndef.connect or ndef.close )
-            Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_SHORT ).show();
             e.printStackTrace();
             return MessageWriteStatus_Enum.FAILED_BECAUSE_IO_EXCEPTION;
         }
         catch (FormatException e)
         {   // Format Error (In ndef.writeNdefMessage)
-            Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_SHORT ).show();
             e.printStackTrace();
             return MessageWriteStatus_Enum.FAILED_BECAUSE_FORMAT_EXCEPTION;
         }
-
-        return MessageWriteStatus_Enum.WRITE_ATTEMPTED;
     }
 
 
