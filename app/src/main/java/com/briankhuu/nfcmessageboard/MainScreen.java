@@ -331,7 +331,7 @@ public class MainScreen extends ActionBarActivity {
     }
 
     private void add_message(){
-         /*
+        /*
             Want to at least save your nickname first
             Oh and to also save the state of the timestamp
         * */
