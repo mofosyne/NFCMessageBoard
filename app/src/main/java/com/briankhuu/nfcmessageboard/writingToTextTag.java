@@ -34,11 +34,10 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class WritingToTextTag extends AppCompatActivity {
+public class WritingToTextTag extends AppCompatActivity
+{
     static String arrPackageName = "com.briankhuu.nfcmessageboard";
-    static boolean write_mode = false;
     private static final String LOGGER_TAG = WritingToTextTag.class.getSimpleName();
-
 
     // Activity context
     Context ctx;
@@ -53,25 +52,24 @@ public class WritingToTextTag extends AppCompatActivity {
 
 
     // Information that we want to write to the tag
-    public enum MessageMode_Enum {
+    public enum MessageMode_Enum
+    {
         SIMPLE_TXT_MODE,        // Legacy support for txt only NFC bbs tags (could try doing something like "sms speak compression"
         STRUCTURED_TXT_MODE     // This is envisioned to be for tags that stores messages in a packed binary method (e.g. think messagepack) to make it easier to tag metadata to it
     }
 
-
-    //public MessageMode_Enum message_modeEnum;
-    //public String message_str;
-
-    public class TagContent{
-        public boolean             successfulWrite_flag    = false;
-        public MessageMode_Enum    message_mode            = MessageMode_Enum.SIMPLE_TXT_MODE;
-        public String              message_str             = "";
+    public class TagContent
+    {
+        boolean             successfulWrite_flag    = false;
+        MessageMode_Enum    message_mode            = MessageMode_Enum.SIMPLE_TXT_MODE;
+        String              message_str             = "";
     }
 
     TagContent tagContent = new TagContent();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_writing_to_text_tag);
 
@@ -117,11 +115,23 @@ public class WritingToTextTag extends AppCompatActivity {
             // fill in the intent with message that the user want to write to the tag
             this.tagContent.message_str = getIntent().getStringExtra("tag_content");
         }
-
-
-
     }
 
+    /*
+    *  RESUME AND PAUSE SECTION
+    * */
+    @Override
+    protected void onResume()
+    { // App resuming from background        /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
+        super.onResume();
+        setupForegroundDispatch(this, mNfcAdapter);
+    }
+
+    @Override
+    protected void onPause() { // App sent to background (when viewing other apps etc...) /* Call this before onPause, otherwise an IllegalArgumentException is thrown as well. */
+        stopForegroundDispatch(this, mNfcAdapter);
+        super.onPause();
+    }
 
 
     /****************************************************************************************************************************************************************
@@ -129,7 +139,8 @@ public class WritingToTextTag extends AppCompatActivity {
     */
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(Intent intent)
+    {
         /**
          * This method gets called, when a new Intent gets associated with the current activity instance.
          * Instead of creating a new activity, onNewIntent will be called. For more information have a look
@@ -165,21 +176,15 @@ public class WritingToTextTag extends AppCompatActivity {
             return;
         }
 
-        write_mode = true;
-
         final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
-        /*
-            Setting up the container filter (It's the trigger)
+        /* Setting up the container filter (It's the trigger)
          */
         IntentFilter[] filters = new IntentFilter[1];
         String[][] techList = new String[][]{};
-        /*
-            Fill the filter with the same settings you had in your manifest
+        /* Fill the filter with the same settings you had in your manifest
          */
-        // Notice that this is the same filter as in our manifest.
-        // ::bk:: Ah I see thanks. So just gotta make sure it matches.
         filters[0] = new IntentFilter();
         filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
         filters[0].addCategory(Intent.CATEGORY_DEFAULT);
@@ -209,22 +214,6 @@ public class WritingToTextTag extends AppCompatActivity {
     }
 
     /*
-    *  RESUME AND PAUSE SECTION
-    * */
-    @Override
-    protected void onResume()
-    { // App resuming from background        /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
-        super.onResume();
-        setupForegroundDispatch(this, mNfcAdapter);
-    }
-
-    @Override
-    protected void onPause() { // App sent to background (when viewing other apps etc...) /* Call this before onPause, otherwise an IllegalArgumentException is thrown as well. */
-        stopForegroundDispatch(this, mNfcAdapter);
-        super.onPause();
-    }
-
-    /*
     *  Reset forground dispatch for tag creation purpose
     * */
 
@@ -236,22 +225,6 @@ public class WritingToTextTag extends AppCompatActivity {
     /****************************************************************************************************************************************************************
         INTENT HANDLING
      */
-
-    // Used by handleIntent()
-    // By maybewecouldstealavan from http://stackoverflow.com/questions/9655181/how-to-convert-a-byte-array-to-a-hex-string-in-java
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(byte[] bytes)
-    {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-
 
     // TODO: Some way to auto verify and rewrite if tag verification fails
     private void handleIntent(Intent intent)
