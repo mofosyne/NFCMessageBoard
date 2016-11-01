@@ -236,21 +236,13 @@ public class MainScreen extends ActionBarActivity {
         // Which is made easier by the fact that this app already auto read the tag on touch.
         //Toast.makeText(ctx, ":D", Toast.LENGTH_LONG ).show();
 
-        /*
         if (armed_write_to_empty_tag) {
             Toast.makeText(ctx, "Disable 'New tag creation mode' to write messages.", Toast.LENGTH_LONG ).show();
         }else{
             infoDisp.setText("Tap to write message");
             armed_nfc_write = true;
         }
-        */
         //add_message();
-
-        // TODO: make this work then remove the above.
-        /* Work In Progress replacement for tag append */
-        Intent intent_obj = new Intent(this, WritingToTextTag.class);
-        intent_obj.putExtra("tag_type", "txt");
-        intent_obj.putExtra("tag_content", "Here is some example content");
     }
 
     /*
@@ -331,7 +323,7 @@ public class MainScreen extends ActionBarActivity {
     }
 
     private void add_message(){
-        /*
+         /*
             Want to at least save your nickname first
             Oh and to also save the state of the timestamp
         * */
@@ -541,24 +533,24 @@ public class MainScreen extends ActionBarActivity {
         * Plus you only really need one title.
          */
         //while (true) {
-            startSpan = vString.substring(0,target.length()).indexOf(target, endSpan-1); //substring(target.length()) since we only want the first line
-            endSpan = vString.indexOf("\n", startSpan+1);
-            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
-            // Need a NEW span object every loop, else it just moves the span
+        startSpan = vString.substring(0,target.length()).indexOf(target, endSpan-1); //substring(target.length()) since we only want the first line
+        endSpan = vString.indexOf("\n", startSpan+1);
+        ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+        // Need a NEW span object every loop, else it just moves the span
             /*
             if (startSpan < 0)
                 break;
                 */
-            if ( !(startSpan < 0) ) { // hacky I know, but its to cater to the case where there is no header text
-                // Need to make sure that start range is always smaller than end range.
-                if (endSpan > startSpan) {
-                    //endSpan = startSpan + target.length();
-                    spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    // Also wannna bold the span too
-                    spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
+        if ( !(startSpan < 0) ) { // hacky I know, but its to cater to the case where there is no header text
+            // Need to make sure that start range is always smaller than end range.
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+        }
         //}
         tv.setText(spanRange);
     }
@@ -930,7 +922,7 @@ public class MainScreen extends ActionBarActivity {
             /*
              * Removed because there's now a built-in way to make a new tag,
              * and there's no reason to tell the user. Just clutter.
-             * 
+             *
             case R.id.creating_a_tag:
                 // show the dialog window
                 new AlertDialog.Builder(this)

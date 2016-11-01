@@ -67,6 +67,11 @@ public class WritingToTextTag extends AppCompatActivity
 
     TagContent tagContent = new TagContent();
 
+    /***********************************************************************************************
+        Activity Lifecycle
+        https://developer.android.com/reference/android/app/Activity.html
+     */
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -117,25 +122,47 @@ public class WritingToTextTag extends AppCompatActivity
         }
     }
 
-    /*
-    *  RESUME AND PAUSE SECTION
-    * */
+    @Override
+    protected void onStart(){
+        super.onStart();
+    };
+
+    @Override
+    protected void onRestart(){
+        super.onRestart();
+    };
+
     @Override
     protected void onResume()
-    { // App resuming from background        /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
+    { // App resuming from background
+        // /* It's important, that the activity is in the foreground (resumed). Otherwise an IllegalStateException is thrown. */
         super.onResume();
         setupForegroundDispatch(this, mNfcAdapter);
     }
 
     @Override
-    protected void onPause() { // App sent to background (when viewing other apps etc...) /* Call this before onPause, otherwise an IllegalArgumentException is thrown as well. */
+    protected void onPause()
+    { // App sent to background (when viewing other apps etc...)
+        // /* Call this before onPause, otherwise an IllegalArgumentException is thrown as well. */
         stopForegroundDispatch(this, mNfcAdapter);
         super.onPause();
     }
 
+    @Override
+    protected void onStop(){
+        super.onStop();
+    };
 
-    /****************************************************************************************************************************************************************
-    ForeGround Dispatch
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+    };
+
+    /**********************************************************************************************/
+
+
+    /***********************************************************************************************
+        ForeGround Dispatch
     */
 
     @Override
@@ -213,8 +240,7 @@ public class WritingToTextTag extends AppCompatActivity
         adapter.disableForegroundDispatch(activity);
     }
 
-    /*
-    *  Reset forground dispatch for tag creation purpose
+    /*  Reset forground dispatch for tag creation purpose
     * */
 
     private void resetForegroundDispatch(){
@@ -229,8 +255,7 @@ public class WritingToTextTag extends AppCompatActivity
     // TODO: Some way to auto verify and rewrite if tag verification fails
     private void handleIntent(Intent intent)
     {
-        /*
-        *  Create new tag mode:
+        /*  Create new tag mode:
         * */
         tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         Toast.makeText(ctx, "Writing tag", Toast.LENGTH_LONG ).show();
@@ -273,7 +298,8 @@ public class WritingToTextTag extends AppCompatActivity
      */
 
     // Used in write()
-    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
+    private NdefRecord createRecord(String text) throws UnsupportedEncodingException
+    {
         /*
             Note: might want to use "NdefRecord createTextRecord (String languageCode, String text)" instead from NdefRecord.createTextRecord()
          */
@@ -297,7 +323,8 @@ public class WritingToTextTag extends AppCompatActivity
     }
 
     // http://stackoverflow.com/questions/119328/how-do-i-truncate-a-java-string-to-fit-in-a-given-number-of-bytes-once-utf-8-en
-    public static String truncateWhenUTF8(String s, int maxBytes) {
+    public static String truncateWhenUTF8(String s, int maxBytes)
+    {
         int b = 0;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -332,7 +359,8 @@ public class WritingToTextTag extends AppCompatActivity
     }
 
 
-    private void write(String text, Tag tag) throws IOException, FormatException {
+    private void write(String text, Tag tag) throws IOException, FormatException
+    {
         int tag_size=0;
 
         if ((tag == null))

@@ -8,6 +8,10 @@ import android.widget.Button;
 
 public class DisplayTextTag extends AppCompatActivity {
 
+    /***********************************************************************************************
+        Activity Lifecycle
+        https://developer.android.com/reference/android/app/Activity.html
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,4 +34,37 @@ public class DisplayTextTag extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+    };
+
+    @Override
+    protected void onRestart(){
+        super.onStart();
+    };
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+    };
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+    };
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+    };
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+    };
+
+    /**********************************************************************************************/
+
 }
