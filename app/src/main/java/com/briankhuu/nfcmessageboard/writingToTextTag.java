@@ -234,7 +234,7 @@ public class WritingToTextTag extends AppCompatActivity
         IntentFilter[]  filters     = new IntentFilter[1];
         String[][]      techList    = new String[][]{};
 
-        // Fill the filter with the same settings you had in your manifest
+        // We are looking for any tag
         filters[0] = new IntentFilter();
         filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
         filters[0].addCategory(Intent.CATEGORY_DEFAULT);

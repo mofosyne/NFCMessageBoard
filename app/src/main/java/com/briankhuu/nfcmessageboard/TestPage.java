@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-public class DisplayTextTag extends AppCompatActivity {
+public class TestPage extends AppCompatActivity {
 
     /***********************************************************************************************
         Activity Lifecycle
@@ -15,7 +15,7 @@ public class DisplayTextTag extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_display_text_tag);
+        setContentView(R.layout.activity_test_page);
 
 
         final Button button_write_tag = (Button) findViewById(R.id.button_write_tag);
