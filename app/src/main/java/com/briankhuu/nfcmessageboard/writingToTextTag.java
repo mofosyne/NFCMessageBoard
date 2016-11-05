@@ -35,8 +35,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class WritingToTextTag extends AppCompatActivity
-{
+public class WritingToTextTag extends AppCompatActivity {
     static String arrPackageName = "com.briankhuu.nfcmessageboard";
     private static final String LOGGER_TAG = WritingToTextTag.class.getSimpleName();
 
@@ -49,8 +48,7 @@ public class WritingToTextTag extends AppCompatActivity
 
 
     // Information that we want to write to the tag
-    public enum MessageWriteStatus_Enum
-    {
+    public enum MessageWriteStatus_Enum {
         INITIALISE,                         //
         SUCCESS,                            // Successfully written into tag
         FAILED,    // Could probbly just try again.
@@ -64,29 +62,26 @@ public class WritingToTextTag extends AppCompatActivity
     }
 
     // Information that we want to write to the tag
-    public enum MessageMode_Enum
-    {
+    public enum MessageMode_Enum {
         SIMPLE_TXT_MODE,        // Legacy support for txt only NFC bbs tags (could try doing something like "sms speak compression"
         STRUCTURED_TXT_MODE     // This is envisioned to be for tags that stores messages in a packed binary method (e.g. think messagepack) to make it easier to tag metadata to it
     }
 
-    public class TagContent
-    {
-        MessageWriteStatus_Enum     successfulWrite_status    = MessageWriteStatus_Enum.INITIALISE;
-        MessageMode_Enum            message_mode            = MessageMode_Enum.SIMPLE_TXT_MODE;
-        String                      message_str             = "";
+    public class TagContent {
+        MessageWriteStatus_Enum successfulWrite_status = MessageWriteStatus_Enum.INITIALISE;
+        MessageMode_Enum message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
+        String message_str = "";
     }
 
     TagContent tagContent = new TagContent();
 
     /***********************************************************************************************
-        Activity Lifecycle
-        https://developer.android.com/reference/android/app/Activity.html
+     * Activity Lifecycle
+     * https://developer.android.com/reference/android/app/Activity.html
      */
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_writing_to_text_tag);
 
@@ -102,15 +97,13 @@ public class WritingToTextTag extends AppCompatActivity
         // Setting up NFC (You need to have NFC and you need to enable it to use.
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this); // Grabs the reference for current NfcAdapter used by the system
 
-        if (mNfcAdapter == null)
-        {   // NFC is not supported
+        if (mNfcAdapter == null) {   // NFC is not supported
             Toast.makeText(this, "This device does not support NFC.", Toast.LENGTH_LONG).show();
             finish(); // Stop here, we definitely need NFC
             return;
         }
 
-        if (!mNfcAdapter.isEnabled())
-        {   // NFC is Disabled
+        if (!mNfcAdapter.isEnabled()) {   // NFC is Disabled
             Toast.makeText(this, "NFC is disabled.", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -123,21 +116,20 @@ public class WritingToTextTag extends AppCompatActivity
         // Select mode
         String message_tag_type_str = getIntent().getStringExtra("tag_type");
 
-        if (message_tag_type_str == null)
-        {   // No intent was detected. Provide default content (good for testing)
+        if (message_tag_type_str == null) {   // No intent was detected. Provide default content (good for testing)
             int random_number = ThreadLocalRandom.current().nextInt(0, 1000 + 1);
 
             // Load in default test content
-            this.tagContent.message_mode    = MessageMode_Enum.SIMPLE_TXT_MODE;
-            this.tagContent.message_str     = "This is an example text content to be included into this tag ("+Integer.toString(random_number)+")";
+            this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
+            this.tagContent.message_str = "This is an example text content to be included into this tag (" + Integer.toString(random_number) + ")";
 
-        }
-        else
-        {   // Activity Intent Is Present
+        } else {   // Activity Intent Is Present
 
             // Load in content from incoming activity intent
-            if ( message_tag_type_str.equals("txt") )               this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
-            if ( message_tag_type_str.equals("struct-text") )       this.tagContent.message_mode = MessageMode_Enum.STRUCTURED_TXT_MODE;
+            if (message_tag_type_str.equals("txt"))
+                this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
+            if (message_tag_type_str.equals("struct-text"))
+                this.tagContent.message_mode = MessageMode_Enum.STRUCTURED_TXT_MODE;
 
             // fill in the intent with message that the user want to write to the tag
             this.tagContent.message_str = getIntent().getStringExtra("tag_content");
@@ -149,13 +141,13 @@ public class WritingToTextTag extends AppCompatActivity
     protected void onStart()
     {
         super.onStart();
-    };
+    }
 
     @Override
     protected void onRestart()
     {
         super.onRestart();
-    };
+    }
 
     @Override
     protected void onResume()
@@ -175,16 +167,61 @@ public class WritingToTextTag extends AppCompatActivity
     protected void onStop()
     {
         super.onStop();
-    };
+    }
 
     @Override
     protected void onDestroy()
-    {
+    {   // Activity is closing (e.g. via  finish() ). May not reach here if app is killed to free up memory
         super.onDestroy();
-    };
+    }
 
     /**********************************************************************************************/
 
+
+    /***********************************************************************************************
+     * Report Success or Failure to Write to parent app
+     * e.g. http://stackoverflow.com/questions/22553672/android-startactivityforresult-setresult-for-a-view-class-and-an-activity-cla#22554156
+     * e.g. https://developer.android.com/reference/android/app/Activity.html
+     */
+    protected void completed_and_now_returning(boolean write_successful)
+    {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("extra stuff","lol");
+
+        if (write_successful)
+        {   // Successful Write
+            setResult(Activity.RESULT_OK, resultIntent);
+        }
+        else
+        {   // Failed Write
+            setResult(Activity.RESULT_CANCELED, resultIntent);
+        }
+
+        // Kill this activity and return to original
+        finish();
+    }
+
+    /*
+        e.g.
+        ## in calling activity:
+            Intent intent = new Intent(v.getContext(), SecondActivity.class);
+            startActivityForResult(
+                         intent,
+                         WRITE_TAG // = request code
+                         );
+
+         ## And later on:
+             protected void onActivityResult(int requestCode, int resultCode, Intent data)
+             {
+                 if (requestCode == WRITE_TAG)
+                 {
+                     if (resultCode == Activity.RESULT_OK)
+                     {
+                         // Something to process the intent
+                     }
+                 }
+            }
+    */
 
     /***********************************************************************************************
      * ForeGround Dispatch
@@ -467,7 +504,8 @@ public class WritingToTextTag extends AppCompatActivity
                         Toast.makeText(ctx, "FAILED: Did it not write?", Toast.LENGTH_SHORT ).show();
                         break;
                     case SUCCESS:   // Can close display now
-                        Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
+                        //Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
+                        completed_and_now_returning(true);
                         break;
                     case FAILED:    // Prompt user to tap?
                         Toast.makeText(ctx, "Tag writing failed for unknown reason. Tap again?", Toast.LENGTH_SHORT ).show();
@@ -477,21 +515,26 @@ public class WritingToTextTag extends AppCompatActivity
                         break;
                     case FAILED_BECAUSE_IO_EXCEPTION:   // Exit failed
                         Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_SHORT ).show();
+                        completed_and_now_returning(false);
                         break;
                     case FAILED_BECAUSE_FORMAT_EXCEPTION: // Exit failed? (or make sure to write new NDEF?)
                         Toast.makeText(ctx, "Cannot Write To Tag. (type:Format). Not NDEF formatted?" , Toast.LENGTH_SHORT ).show();
+                        completed_and_now_returning(false);
                         break;
                     case FAILED_BECAUSE_TAG_LOST:   // Can't trigger this yet
                         Toast.makeText(ctx, "Lost connection to tag. Tap again.", Toast.LENGTH_SHORT ).show();
                         break;
                     case FAILED_BECAUSE_NULL_NDEF:
                         Toast.makeText(ctx, "Tag Write Failed: NULL NDEF", Toast.LENGTH_SHORT ).show();
+                        completed_and_now_returning(false);
                         break;
                     case FAILED_BECAUSE_INSUFFICIENT_SPACE:
                         Toast.makeText(ctx, "Cannot Write To Tag. Message is too big", Toast.LENGTH_SHORT ).show();
+                        completed_and_now_returning(false);
                         break;
                     case FAILED_BECAUSE_WRITE_PROTECTED:
                         Toast.makeText(ctx, "Cannot Write To Tag. Tag is Read Only", Toast.LENGTH_SHORT ).show();
+                        completed_and_now_returning(false);
                         break;
                 }
 

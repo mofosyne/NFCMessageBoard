@@ -20,6 +20,7 @@ import android.nfc.NfcAdapter;
 import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -73,7 +74,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 
-public class MainScreen extends ActionBarActivity {
+public class MainScreen extends AppCompatActivity {
 
     Context ctx;
 

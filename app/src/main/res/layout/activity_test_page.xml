@@ -14,18 +14,41 @@
         android:text="ReadMe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="42dp"
         android:id="@+id/button_readme"
         android:layout_below="@+id/button_write_tag"
-        android:layout_alignLeft="@+id/button_write_tag"
-        android:layout_alignStart="@+id/button_write_tag" />
+        android:layout_alignLeft="@+id/button_write_tag_startActivityForResult"
+        android:layout_alignStart="@+id/button_write_tag_startActivityForResult" />
 
     <Button
         android:text="Launch Write Tag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="83dp"
+        android:layout_marginTop="35dp"
         android:id="@+id/button_write_tag"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignLeft="@+id/button_readme"
+        android:layout_alignStart="@+id/button_readme" />
+
+    <Button
+        android:text="Launch Write Tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:id="@+id/button3"
+        android:layout_marginLeft="56dp"
+        android:layout_marginStart="56dp"
+        android:layout_below="@+id/button_write_tag_startActivityForResult"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Launch Write Tag with return value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="63dp"
+        android:id="@+id/button_write_tag_startActivityForResult"
+        android:layout_below="@+id/button_readme"
+        android:layout_alignLeft="@+id/button3"
+        android:layout_alignStart="@+id/button3" />
 </RelativeLayout>
