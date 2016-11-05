@@ -31,11 +31,11 @@
         android:layout_alignStart="@+id/button_readme" />
 
     <Button
-        android:text="Launch Write Tag"
+        android:text="button_open_new_tag_creation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:id="@+id/button3"
+        android:id="@+id/button_open_new_tag_creation"
         android:layout_marginLeft="56dp"
         android:layout_marginStart="56dp"
         android:layout_below="@+id/button_write_tag_startActivityForResult"
@@ -49,6 +49,6 @@
         android:layout_marginTop="63dp"
         android:id="@+id/button_write_tag_startActivityForResult"
         android:layout_below="@+id/button_readme"
-        android:layout_alignLeft="@+id/button3"
-        android:layout_alignStart="@+id/button3" />
+        android:layout_alignLeft="@+id/button_open_new_tag_creation"
+        android:layout_alignStart="@+id/button_open_new_tag_creation" />
 </RelativeLayout>

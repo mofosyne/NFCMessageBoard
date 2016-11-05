@@ -9,11 +9,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class TestPage extends AppCompatActivity {
+public class TextTagCreation extends AppCompatActivity {
 
     // Activity context
     Context ctx;
-
 
     // Information that we want to write to the tag
     public enum ActivityRequestCode_Enum {
@@ -21,23 +20,16 @@ public class TestPage extends AppCompatActivity {
     }
 
 
-    /***********************************************************************************************
-        Activity Lifecycle
-        https://developer.android.com/reference/android/app/Activity.html
-     */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_test_page);
+        setContentView(R.layout.activity_text_tag_creation);
 
         ctx = this;
 
-
-        /* Install Button Listeners
-        * */
-
         // Button Write With Return Results
-        final Button button_write_tag_forresult = (Button) findViewById(R.id.button_write_tag_startActivityForResult);
+        final Button button_write_tag_forresult = (Button) findViewById(R.id.button_create_new_tag);
         button_write_tag_forresult.setOnClickListener(
                 new View.OnClickListener()
                 {
@@ -45,48 +37,13 @@ public class TestPage extends AppCompatActivity {
                         Intent intent = new Intent(v.getContext(), WritingToTextTag.class);
                         startActivityForResult(
                                 intent,
-                                ActivityRequestCode_Enum.REQUEST_CODE_NEW_TAG.ordinal()
+                                TestPage.ActivityRequestCode_Enum.REQUEST_CODE_NEW_TAG.ordinal()
                         );
                     }
                 }
         );
-
-        // Button Write Tag
-        final Button button_write_tag = (Button) findViewById(R.id.button_write_tag);
-        button_write_tag.setOnClickListener(
-                new View.OnClickListener()
-                {
-                    public void onClick(View v) {
-                        Intent intent = new Intent(v.getContext(), WritingToTextTag.class);
-                        startActivity(intent);
-                    }
-                }
-        );
-
-        // button_open_new_tag_creation Write Tag
-        final Button button_open_new_tag_creation = (Button) findViewById(R.id.button_open_new_tag_creation);
-        button_open_new_tag_creation.setOnClickListener(
-                new View.OnClickListener()
-                {
-                    public void onClick(View v) {
-                        Intent intent = new Intent(v.getContext(), TextTagCreation.class);
-                        startActivity(intent);
-                    }
-                }
-        );
-
-        // Button Readme
-        final Button button_readme = (Button) findViewById(R.id.button_readme);
-        button_readme.setOnClickListener(
-                new View.OnClickListener()
-                {
-                    public void onClick(View v) {
-                        Intent intent = new Intent(v.getContext(), ReadMe.class);
-                        startActivity(intent);
-                    }
-                }
-        );
     }
+
 
     @Override
     protected void onStart(){
@@ -122,7 +79,7 @@ public class TestPage extends AppCompatActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (requestCode == ActivityRequestCode_Enum.REQUEST_CODE_NEW_TAG.ordinal())
+        if (requestCode == TestPage.ActivityRequestCode_Enum.REQUEST_CODE_NEW_TAG.ordinal())
         {
             switch (resultCode)
             {
