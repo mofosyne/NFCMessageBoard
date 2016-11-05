@@ -347,10 +347,9 @@ public class WritingToTextTag extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(ctx, "Writing tag", Toast.LENGTH_LONG ).show();
+        Log.d( LOGGER_TAG, "Writing tag");
 
         writeMessageTag(this.tagContent,tag);
-
 
         return;
     }
@@ -448,6 +447,7 @@ public class WritingToTextTag extends AppCompatActivity {
                 if (ndefTag == null)
                 {
                     Log.e( LOGGER_TAG, "not an NFC tag");
+                    Toast.makeText(ctx, "Not an NFC tag. Please try again.", Toast.LENGTH_SHORT ).show();
                     return;
                 }
 
@@ -461,7 +461,7 @@ public class WritingToTextTag extends AppCompatActivity {
                     Log.e( LOGGER_TAG, "setupForegroundDispatch:"
                             +" Tag Is Not Writable "
                     );
-                    completed_and_now_returning(false); // Return write fail
+                    Toast.makeText(ctx, "Tag was set to read only.", Toast.LENGTH_SHORT ).show();
                     return;
                 }
             }
@@ -511,21 +511,24 @@ public class WritingToTextTag extends AppCompatActivity {
                         androidAAR_NdefRecord
                 });
 
-                Toast.makeText(ctx, "Attempting To Write To Tag", Toast.LENGTH_SHORT ).show();
-
                 // Maximum Five Times Retries
                 for (int i=0 ; i < 5 ; i++)
                 {
                     message_write_status = writeNdefMessageToTag(message,tag,false);
 
+                    Log.d( LOGGER_TAG, "Writing To Tag (attempt: " + Integer.toString(i) + ") Status: " + message_write_status.toString());
+
+                    // Stop Loop as tag was written successfully
                     if ( message_write_status == MessageWriteStatus_Enum.SUCCESS )
                         break;  // Write Successful
 
-                    // Keep trying
+                    // Tag was lost, no use retrying. (Or you will end up with "java.lang.IllegalStateException: Close other technology first" exception)
+                    if ( message_write_status == MessageWriteStatus_Enum.FAILED_BECAUSE_IO_EXCEPTION )
+                        break;  // Tag Communication Was Lost
                 }
 
                 // Report Status
-                tagContent_input.successfulWrite_status = message_write_status; // Possibly to use to retry?
+                tagContent_input.successfulWrite_status = message_write_status;
 
                 switch (message_write_status) {
                     case INITIALISE:
@@ -542,8 +545,7 @@ public class WritingToTextTag extends AppCompatActivity {
                         Toast.makeText(ctx, "Tag content mismatch. Tap again", Toast.LENGTH_SHORT ).show();
                         break;
                     case FAILED_BECAUSE_IO_EXCEPTION:   // Exit failed
-                        Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_SHORT ).show();
-                        completed_and_now_returning(false);
+                        Toast.makeText(ctx, "Cannot Write To Tag. (type:IO). Try again?", Toast.LENGTH_SHORT ).show();
                         break;
                     case FAILED_BECAUSE_FORMAT_EXCEPTION: // Exit failed? (or make sure to write new NDEF?)
                         Toast.makeText(ctx, "Cannot Write To Tag. (type:Format). Not NDEF formatted?" , Toast.LENGTH_SHORT ).show();
@@ -598,22 +600,21 @@ public class WritingToTextTag extends AppCompatActivity {
                     ndef.makeReadOnly();
                 }
 
-
-                // Checking
-                message_read_check = ndef.getNdefMessage(); // Read and check somehow?
-
-                ndef.close(); // ( Throws: IOException )
-
-                if(message_read_check.equals(message))
-                {
+                // Checking if tag is written correctly
+                if(ndef.getNdefMessage().equals(message))   // (ndef throws null exception if tag is missing)
+                {   // Read and check somehow?
                     return MessageWriteStatus_Enum.SUCCESS;
                 }
+
+
+                ndef.close(); // ( Throws: IOException if tag is missing)
+
 
                 // Content Mismatch
                 return MessageWriteStatus_Enum.FAILED_BECAUSE_CONTENT_MISMATCH;
 
             } else {
-                return MessageWriteStatus_Enum.FAILED_BECAUSE_NULL_NDEF;// writeTag: ndef==null!
+                return MessageWriteStatus_Enum.FAILED_BECAUSE_NULL_NDEF; // writeTag: ndef==null!
             }
         }
         catch (IOException e)
