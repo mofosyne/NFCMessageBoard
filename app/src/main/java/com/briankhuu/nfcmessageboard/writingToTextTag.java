@@ -29,6 +29,8 @@ import android.nfc.tech.Ndef;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -135,6 +137,24 @@ public class WritingToTextTag extends AppCompatActivity {
             this.tagContent.message_str = getIntent().getStringExtra("tag_content");
 
         }
+
+
+        /* Install Button Listeners
+        * */
+
+        // Cancel Button
+        final Button button_write_tag = (Button) findViewById(R.id.button_cancel);
+        button_write_tag.setOnClickListener(
+                new View.OnClickListener()
+                {
+                    public void onClick(View v) {
+                        completed_and_now_returning(false); // Return write tag failed
+                    }
+                }
+            );
+
+
+
     }
 
     @Override
@@ -425,8 +445,15 @@ public class WritingToTextTag extends AppCompatActivity {
                 // get NDEF tag details
                 Ndef ndefTag = Ndef.get(tag);
 
+                if (ndefTag == null)
+                {
+                    Log.e( LOGGER_TAG, "not an NFC tag");
+                    return;
+                }
+
                 // Get Tag Size
                 tag_size = ndefTag.getMaxSize();
+                Log.d( LOGGER_TAG, "tagsize:" + Integer.toString(tag_size) );
 
                 // Check Tag Writability (That it is not read only)
                 if (ndefTag.isWritable() != true)
@@ -434,6 +461,7 @@ public class WritingToTextTag extends AppCompatActivity {
                     Log.e( LOGGER_TAG, "setupForegroundDispatch:"
                             +" Tag Is Not Writable "
                     );
+                    completed_and_now_returning(false); // Return write fail
                     return;
                 }
             }

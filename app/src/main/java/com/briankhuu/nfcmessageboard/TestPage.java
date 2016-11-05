@@ -32,6 +32,11 @@ public class TestPage extends AppCompatActivity {
 
         ctx = this;
 
+
+        /* Install Button Listeners
+        * */
+
+        // Button Write With Return Results
         final Button button_write_tag_forresult = (Button) findViewById(R.id.button_write_tag_startActivityForResult);
         button_write_tag_forresult.setOnClickListener(
                 new View.OnClickListener()
@@ -44,9 +49,9 @@ public class TestPage extends AppCompatActivity {
                         );
                     }
                 }
-        );
+            );
 
-
+        // Button Write Tag
         final Button button_write_tag = (Button) findViewById(R.id.button_write_tag);
         button_write_tag.setOnClickListener(
                 new View.OnClickListener()
@@ -58,6 +63,7 @@ public class TestPage extends AppCompatActivity {
                 }
             );
 
+        // Button Readme
         final Button button_readme = (Button) findViewById(R.id.button_readme);
         button_readme.setOnClickListener(
                 new View.OnClickListener()
