@@ -26,6 +26,7 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,6 +49,9 @@ public class WritingToTextTag extends AppCompatActivity {
     Tag tag;
     private NfcAdapter mNfcAdapter; // Sets up an empty object of type NfcAdapter
 
+    // Haptic Feedback
+    Vibrator vibrator;
+
 
     // Information that we want to write to the tag
     public enum MessageWriteStatus_Enum {
@@ -69,6 +73,8 @@ public class WritingToTextTag extends AppCompatActivity {
         STRUCTURED_TXT_MODE     // This is envisioned to be for tags that stores messages in a packed binary method (e.g. think messagepack) to make it easier to tag metadata to it
     }
 
+
+    // Deals with tag instances
     public class TagContent {
         MessageWriteStatus_Enum successfulWrite_status = MessageWriteStatus_Enum.INITIALISE;
         MessageMode_Enum message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
@@ -92,6 +98,11 @@ public class WritingToTextTag extends AppCompatActivity {
 
         // Record the activity context pointer
         ctx = this;
+
+
+        //setup vibrate
+        vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+
 
         /* Setup NFC Adapter
         * */
@@ -536,6 +547,11 @@ public class WritingToTextTag extends AppCompatActivity {
                         break;
                     case SUCCESS:   // Can close display now
                         //Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
+
+                        // Lets vibrate!
+                        long[] pattern = {0, 200, 200, 200, 200, 200, 200};
+                        vibrator.vibrate(pattern,-1);
+
                         completed_and_now_returning(true);
                         break;
                     case FAILED:    // Prompt user to tap?
