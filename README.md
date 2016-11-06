@@ -1,6 +1,6 @@
 # NFCMessageBoard
 
-NFC Tag message board is an android app that is currently a proof of concept of a localized message system. 
+NFC Tag message board is an android app that is currently a proof of concept of a localized message system.
 ( But it could also be useful as a personal reminder system )
 
 It is quite simple, and does the job of reading and writing to any plain text NFC tags. At a minimum you are recommended to use NTAG216 that gives you approximately 800 bytes of writeable memory.
@@ -26,6 +26,8 @@ There is even an entry on it in n-o-d-e net magazine: http://n-o-d-e.net/post/11
 - Create a new tag - Easier to get started with this! Just get an empty writable NFC tag!
 - Message text are selectable
 - You can bold text via markdown style `**bold**`
+
+- Bonus: Can now also read NFC tags with embedded html pages encoded as "text/html" MIME payload.
 
 ## Wishlist:
 
