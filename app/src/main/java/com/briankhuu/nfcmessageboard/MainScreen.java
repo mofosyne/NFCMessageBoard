@@ -20,6 +20,7 @@ import android.nfc.NfcAdapter;
 import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -73,7 +74,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 
-public class MainScreen extends ActionBarActivity {
+public class MainScreen extends AppCompatActivity {
 
     Context ctx;
 
@@ -89,6 +90,7 @@ public class MainScreen extends ActionBarActivity {
     public static boolean armed_nfc_write = false;
     public static TextView entry_msg;
     public static TextView entry_name;
+    String caeched_message; // On successful write, use this to update the display for instant feedback.
 
     /*
     *  For tag creation purpose
@@ -236,33 +238,15 @@ public class MainScreen extends ActionBarActivity {
         // Which is made easier by the fact that this app already auto read the tag on touch.
         //Toast.makeText(ctx, ":D", Toast.LENGTH_LONG ).show();
 
+        /* // No longer used, as we are using the new system instead
         if (armed_write_to_empty_tag) {
             Toast.makeText(ctx, "Disable 'New tag creation mode' to write messages.", Toast.LENGTH_LONG ).show();
         }else{
             infoDisp.setText("Tap to write message");
             armed_nfc_write = true;
         }
-        //add_message();
-    }
-
-    /*
-        Restore Tag Content Button (Good when the occational write bug occours)
-        * Disabled in the menu until it can be improved to work correctly.
-     */
-    public void restoreTagButton(View view){
-        if (armed_write_to_restore_tag == false){
-            infoDisp.setText("Tag Restore Mode - ARMED");
-            Toast.makeText(ctx, "Restore Mode Enabled", Toast.LENGTH_LONG ).show();
-            armed_write_to_empty_tag = true;
-            armed_write_to_restore_tag = true;
-            resetForegroundDispatch();
-        } else {
-            infoDisp.setText("Tag Restore Mode - DISARMED");
-            Toast.makeText(ctx, "Restore Mode Disabled", Toast.LENGTH_LONG ).show();
-            armed_write_to_empty_tag = false;
-            armed_write_to_restore_tag = false;
-            resetForegroundDispatch();
-        }
+        */
+        add_message();
     }
 
     private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
@@ -332,84 +316,106 @@ public class MainScreen extends ActionBarActivity {
         /*
             This is called after a read function and activate if write is armed.
          */
-        try {
-            if(tag==null){
-                Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
-            }else{
-                String new_entry = "Hello World!";
-                // Get current time for timestamping
-                String dateStamp_entry;
-                boolean enableTimestamp = CheckBox_enable_timestamp.isChecked();
-                if (enableTimestamp) {
-                    DateFormat df = new SimpleDateFormat("ddMMMyy 'at' HH:mm"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
-                    df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    String dateStamp = df.format(new Date());
-                    dateStamp_entry = dateStamp;
-                } else {
-                    dateStamp_entry = "";
-                }
-                // Calling the labels again manually (Just in case it dissapears for some reason (This is a hack? Its to avoid " W/Editor﹕ GetLabel fail! Do framework orig behavior" which causes the field to be empty )
-                entry_msg = (TextView)findViewById(R.id.edit_msg);
-                entry_name = (TextView)findViewById(R.id.edit_name);
-                // Get the text
-                String message = entry_msg.getText().toString();
-                String nick = entry_name.getText().toString();
-                /*
-                * We require at least one entry
-                * */
-                if ( !enableTimestamp && ( message.equals("") ) && (nick.equals("")) ){
-                    Toast.makeText(ctx, "Cannot post empty message", Toast.LENGTH_LONG ).show();
-                    return;
-                }
-                // Get the original Tag content
-                String initialTagText = mTextView.getText().toString();
-                /*
-                *   We don't want to overwrite the first line if it's a header
-                * */
-                boolean headerExist = false;
-                String headerText = "";
-                if (initialTagText.substring(0,2).contains("# ")){
-                    int indexNewline = initialTagText.indexOf("\n");
-                    if (indexNewline>0) {
-                        // split the text
-                        headerText = initialTagText.substring(0, indexNewline)+"\n"; // We want to add +1 to indexNewline to also capture the newline char
-                        initialTagText = initialTagText.substring(indexNewline + 1, initialTagText.length() ); // +1 to indexNewline so we can skip the newline char.
-                    }else{
-                        headerText = initialTagText+"\n";
-                        initialTagText = "";
-                    }
-                    headerExist = true;
-                }
-                // Construct MessageEntry
-                if ( !dateStamp_entry.equals("") ){ dateStamp_entry = " \"date\":\""+dateStamp_entry+"\"|";  }
-                if ( !nick.equals("")            ){ nick = " \"nick\":\""+nick+"\"|";                        }
-                if ( !message.equals("")         ){ message = message+"\n";                  }
-                String new_msgEntry = "##"+nick+""+dateStamp_entry+"\n"+message+"\n---\n";
-                // Construct text
-                new_entry = headerText + "\n" + new_msgEntry + initialTagText;
-                // Write to tag
-                write(new_entry,tag);
-                // Clear the message field. Name field is left alone. And all is done.
-                entry_msg.setText("");
-                infoDisp.setText("Message Written.");
-                // Lets vibrate!
-                long[] pattern = {0, 200, 200, 200, 200, 200, 200};
-                vibrator.vibrate(pattern,-1);
-                // Update the display with what was posted to make user experience more responsive
-                updateMainDisplay(new_entry);
-                // Let user know it's all gravy
-                Toast.makeText(ctx, ctx.getString(R.string.ok_writing), Toast.LENGTH_LONG ).show();
-                infoDisp.setText("New Tag Created");
+        if(tag==null)
+        {
+            Toast.makeText(ctx, ctx.getString(R.string.error_detected), Toast.LENGTH_LONG ).show();
+        }
+        else
+        {
+            String new_entry = "Hello World!";
+            // Get current time for timestamping
+            String dateStamp_entry;
+            boolean enableTimestamp = CheckBox_enable_timestamp.isChecked();
+            if (enableTimestamp) {
+                String dateFormatString;
+                dateFormatString = "yyyy-MM-dd'T'HH:mm'Z'";
+                //dateFormatString = "ddMMMyy@HH:mm";
+                DateFormat df = new SimpleDateFormat(dateFormatString); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
+                df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String dateStamp = df.format(new Date());
+                dateStamp_entry = dateStamp;
+            } else {
+                dateStamp_entry = "";
             }
-        } catch (IOException e) {
-            Toast.makeText(ctx, "Cannot Write To Tag. (type:IO)", Toast.LENGTH_LONG ).show();
-            e.printStackTrace();
-        } catch (FormatException e) {
-            Toast.makeText(ctx, "Cannot Write To Tag. (type:Format)" , Toast.LENGTH_LONG ).show();
-            e.printStackTrace();
+            // Calling the labels again manually (Just in case it dissapears for some reason (This is a hack? Its to avoid " W/Editor﹕ GetLabel fail! Do framework orig behavior" which causes the field to be empty )
+            entry_msg = (TextView) findViewById(R.id.edit_msg);
+            entry_name = (TextView) findViewById(R.id.edit_name);
+            // Get the text
+            String message = entry_msg.getText().toString();
+            String nick = entry_name.getText().toString();
+            /*
+            * We require at least one entry
+            * */
+            if (!enableTimestamp && (message.equals("")) && (nick.equals(""))) {
+                Toast.makeText(ctx, "Cannot post empty message", Toast.LENGTH_LONG).show();
+                return;
+            }
+            // Get the original Tag content
+            String initialTagText = mTextView.getText().toString();
+            /*
+            *   We don't want to overwrite the first line if it's a header
+            * */
+            String headerText = "";
+            if (initialTagText.substring(0, 2).contains("# ")) { // Check for header text, and preserve it.
+                int indexNewline = initialTagText.indexOf("\n");
+                if (indexNewline > 0) {
+                    // split the text
+                    headerText = initialTagText.substring(0, indexNewline) + "\n"; // We want to add +1 to indexNewline to also capture the newline char
+                    initialTagText = initialTagText.substring(indexNewline + 1, initialTagText.length()); // +1 to indexNewline so we can skip the newline char.
+                } else {
+                    headerText = initialTagText + "\n";
+                    initialTagText = "";
+                }
+            }
+            // Construct MessageEntry
+            if (!dateStamp_entry.equals("")) {
+                dateStamp_entry =  dateStamp_entry + "";
+            }
+            if (!nick.equals("")) {
+                nick = nick + ", ";
+            }
+            if (!message.equals("")) {
+                message = message + "\n";
+            }
+            String new_msgEntry = "## " + nick + dateStamp_entry + "\n" + message + "\n";
+            // Construct text
+            new_entry = headerText + "\n" + new_msgEntry + initialTagText;
+
+
+            // Write to tag (now using external activity instead)
+            caeched_message = new_entry;
+            Intent intent = new Intent(this, WritingToTextTag.class);
+            intent.putExtra("tag_type", "txt");
+            intent.putExtra("tag_content", new_entry);
+            startActivityForResult(
+                    intent,
+                    TestPage.ActivityRequestCode_Enum.REQUEST_CODE_NEW_TAG.ordinal()
+            );
         }
 
     }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == TextTagCreation.ActivityRequestCode_Enum.REQUEST_CODE_NEW_TAG.ordinal())
+        {
+            switch (resultCode)
+            {
+                case (Activity.RESULT_OK):
+                    Toast.makeText(ctx, "Tag was successfully written to ", Toast.LENGTH_LONG ).show();
+                    entry_msg.setText("");
+                    infoDisp.setText("Message Written.");
+                    // Update the display with what was posted to make user experience more responsive
+                    updateMainDisplay(caeched_message);
+                    break;
+                case (Activity.RESULT_CANCELED):
+                    Toast.makeText(ctx, "Tag write failed", Toast.LENGTH_LONG ).show();
+                    break;
+                default:
+            }
+        }
+    }
+
 
 
     // http://stackoverflow.com/questions/119328/how-do-i-truncate-a-java-string-to-fit-in-a-given-number-of-bytes-once-utf-8-en
@@ -533,24 +539,24 @@ public class MainScreen extends ActionBarActivity {
         * Plus you only really need one title.
          */
         //while (true) {
-            startSpan = vString.substring(0,target.length()).indexOf(target, endSpan-1); //substring(target.length()) since we only want the first line
-            endSpan = vString.indexOf("\n", startSpan+1);
-            ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
-            // Need a NEW span object every loop, else it just moves the span
+        startSpan = vString.substring(0,target.length()).indexOf(target, endSpan-1); //substring(target.length()) since we only want the first line
+        endSpan = vString.indexOf("\n", startSpan+1);
+        ForegroundColorSpan foreColour = new ForegroundColorSpan(colour);
+        // Need a NEW span object every loop, else it just moves the span
             /*
             if (startSpan < 0)
                 break;
                 */
-            if ( !(startSpan < 0) ) { // hacky I know, but its to cater to the case where there is no header text
-                // Need to make sure that start range is always smaller than end range.
-                if (endSpan > startSpan) {
-                    //endSpan = startSpan + target.length();
-                    spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    // Also wannna bold the span too
-                    spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
+        if ( !(startSpan < 0) ) { // hacky I know, but its to cater to the case where there is no header text
+            // Need to make sure that start range is always smaller than end range.
+            if (endSpan > startSpan) {
+                //endSpan = startSpan + target.length();
+                spanRange.setSpan(foreColour, startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                // Also wannna bold the span too
+                spanRange.setSpan(new RelativeSizeSpan(size), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spanRange.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), startSpan, endSpan, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+        }
         //}
         tv.setText(spanRange);
     }
@@ -915,38 +921,27 @@ public class MainScreen extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent; // Used to launch activities
+
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            /*
-             * Removed because there's now a built-in way to make a new tag,
-             * and there's no reason to tell the user. Just clutter.
-             * 
-            case R.id.creating_a_tag:
-                // show the dialog window
-                new AlertDialog.Builder(this)
-                        .setTitle("Creating A Tag")
-                        .setMessage(getString(R.string.tag_creation))
-                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-                return true;
-                */
             case R.id.write_new_tag:
-                infoDisp.setText("Tap To Create New Message Board Tag.");
-                Toast.makeText(ctx, "New tag mode.", Toast.LENGTH_LONG ).show();
-                armed_write_to_empty_tag = true;
-                resetForegroundDispatch();
-                return true;
-            case R.id.cancel_write_new_tag:
-                infoDisp.setText("Tap to write message.");
-                Toast.makeText(ctx, "Normal mode.", Toast.LENGTH_LONG ).show();
-                armed_write_to_empty_tag = false;
-                resetForegroundDispatch();
+                // Clear display to avoid confusion
+                entry_msg.setText("");
+                /*
+                TODO: updateMainDisplay() crashes on "" or "\n" but not " \n" or more. Fix this...
+                java.lang.StringIndexOutOfBoundsException: length=0; regionStart=0; regionLength=2
+                      at java.lang.String.substring(String.java:1931)
+                      at com.briankhuu.nfcmessageboard.MainScreen.changeLineinView_TITLESTYLE(MainScreen.java:541)
+                */
+                updateMainDisplay(" \n");
+                // Inform user
+                infoDisp.setText("Tap to confirm new tag is working");
+                // Start Tag Creation Activity
+                intent = new Intent(this, TextTagCreation.class);
+                startActivity(intent);
                 return true;
             case R.id.about:
                 int versionCode = BuildConfig.VERSION_CODE;
@@ -962,7 +957,7 @@ public class MainScreen extends ActionBarActivity {
                         .show();
                 return true;
             case R.id.readme:
-                Intent intent = new Intent(this, ReadMe.class);
+                intent = new Intent(this, ReadMe.class);
                 startActivity(intent);
                 return true;
             default:

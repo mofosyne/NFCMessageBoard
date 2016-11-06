@@ -1,14 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainScreen">
-    <item android:id="@+id/creating_a_tag" android:title="@string/tag_create"
+
+    <item android:id="@+id/write_new_tag" android:title="Create New Tag"
         android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/write_new_tag" android:title="@string/new_tag_write"
+    <item android:id="@+id/readme" android:title="Readme"
         android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/cancel_write_new_tag" android:title="@string/cancel_write_new_tag"
-        android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/about" android:title="@string/menu_about"
-        android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/readme" android:title="full readme"
+    <item android:id="@+id/about" android:title="About"
         android:orderInCategory="100" app:showAsAction="never" />
 </menu>
