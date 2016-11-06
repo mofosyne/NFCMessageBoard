@@ -627,6 +627,11 @@ public class WritingToTextTag extends AppCompatActivity {
             e.printStackTrace();
             return MessageWriteStatus_Enum.FAILED_BECAUSE_FORMAT_EXCEPTION;
         }
+        catch (NullPointerException e)
+        {   // Format Error (In ndef.writeNdefMessage)
+            e.printStackTrace();
+            return MessageWriteStatus_Enum.FAILED_BECAUSE_NULL_NDEF;
+        }
     }
 
 
