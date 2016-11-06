@@ -31,6 +31,13 @@
 
                 <data android:mimeType="text/plain" />
             </intent-filter>
+
+            <!-- This Indicates that this is the first activity page of this app, reachable from app screen -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ReadMe"
@@ -40,12 +47,12 @@
         <!-- This is the temporary entry point to access other activities -->
         <activity android:name=".TestPage">
 
-            <!-- This Indicates that this is the first activity page of this app, reachable from app screen -->
+            <!-- This Indicates that this is the first activity page of this app, reachable from app screen
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
         <activity android:name=".TextTagCreation"></activity>
     </application>

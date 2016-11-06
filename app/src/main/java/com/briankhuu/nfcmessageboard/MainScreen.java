@@ -916,38 +916,16 @@ public class MainScreen extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent; // Used to launch activities
+
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            /*
-             * Removed because there's now a built-in way to make a new tag,
-             * and there's no reason to tell the user. Just clutter.
-             *
-            case R.id.creating_a_tag:
-                // show the dialog window
-                new AlertDialog.Builder(this)
-                        .setTitle("Creating A Tag")
-                        .setMessage(getString(R.string.tag_creation))
-                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-                return true;
-                */
             case R.id.write_new_tag:
-                infoDisp.setText("Tap To Create New Message Board Tag.");
-                Toast.makeText(ctx, "New tag mode.", Toast.LENGTH_LONG ).show();
-                armed_write_to_empty_tag = true;
-                resetForegroundDispatch();
-                return true;
-            case R.id.cancel_write_new_tag:
-                infoDisp.setText("Tap to write message.");
-                Toast.makeText(ctx, "Normal mode.", Toast.LENGTH_LONG ).show();
-                armed_write_to_empty_tag = false;
-                resetForegroundDispatch();
+                infoDisp.setText("Tap to confirm new tag is working");
+                intent = new Intent(this, TextTagCreation.class);
+                startActivity(intent);
                 return true;
             case R.id.about:
                 int versionCode = BuildConfig.VERSION_CODE;
@@ -963,7 +941,7 @@ public class MainScreen extends AppCompatActivity {
                         .show();
                 return true;
             case R.id.readme:
-                Intent intent = new Intent(this, ReadMe.class);
+                intent = new Intent(this, ReadMe.class);
                 startActivity(intent);
                 return true;
             default:
