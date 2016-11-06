@@ -327,7 +327,10 @@ public class MainScreen extends AppCompatActivity {
             String dateStamp_entry;
             boolean enableTimestamp = CheckBox_enable_timestamp.isChecked();
             if (enableTimestamp) {
-                DateFormat df = new SimpleDateFormat("ddMMMyy 'at' HH:mm"); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
+                String dateFormatString;
+                dateFormatString = "yyyy-MM-dd'T'HH:mm'Z'";
+                //dateFormatString = "ddMMMyy@HH:mm";
+                DateFormat df = new SimpleDateFormat(dateFormatString); //SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'") //ISO date standard
                 df.setTimeZone(TimeZone.getTimeZone("UTC"));
                 String dateStamp = df.format(new Date());
                 dateStamp_entry = dateStamp;
@@ -352,9 +355,8 @@ public class MainScreen extends AppCompatActivity {
             /*
             *   We don't want to overwrite the first line if it's a header
             * */
-            boolean headerExist = false;
             String headerText = "";
-            if (initialTagText.substring(0, 2).contains("# ")) {
+            if (initialTagText.substring(0, 2).contains("# ")) { // Check for header text, and preserve it.
                 int indexNewline = initialTagText.indexOf("\n");
                 if (indexNewline > 0) {
                     // split the text
@@ -364,19 +366,18 @@ public class MainScreen extends AppCompatActivity {
                     headerText = initialTagText + "\n";
                     initialTagText = "";
                 }
-                headerExist = true;
             }
             // Construct MessageEntry
             if (!dateStamp_entry.equals("")) {
-                dateStamp_entry = " \"date\":\"" + dateStamp_entry + "\"|";
+                dateStamp_entry =  dateStamp_entry + "";
             }
             if (!nick.equals("")) {
-                nick = " \"nick\":\"" + nick + "\"|";
+                nick = nick + ", ";
             }
             if (!message.equals("")) {
                 message = message + "\n";
             }
-            String new_msgEntry = "##" + nick + "" + dateStamp_entry + "\n" + message + "\n---\n";
+            String new_msgEntry = "## " + nick + dateStamp_entry + "\n" + message + "\n";
             // Construct text
             new_entry = headerText + "\n" + new_msgEntry + initialTagText;
 
