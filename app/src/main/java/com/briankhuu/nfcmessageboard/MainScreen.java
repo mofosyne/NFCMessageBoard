@@ -689,6 +689,30 @@ public class MainScreen extends AppCompatActivity {
     }
 
 
+
+    /*
+    *  Create new nfc messageboard tag
+    * */
+
+    private void launchNewTagCreation()
+    {
+        // Clear display to avoid confusion
+        entry_msg.setText("");
+                /*
+                TODO: updateMainDisplay() crashes on "" or "\n" but not " \n" or more. Fix this...
+                java.lang.StringIndexOutOfBoundsException: length=0; regionStart=0; regionLength=2
+                      at java.lang.String.substring(String.java:1931)
+                      at com.briankhuu.nfcmessageboard.MainScreen.changeLineinView_TITLESTYLE(MainScreen.java:541)
+                */
+        updateMainDisplay(" \n");
+        // Inform user
+        infoDisp.setText("Tap to confirm new tag is working");
+        // Start Tag Creation Activity
+        Intent intent = new Intent(this, TextTagCreation.class);
+        startActivity(intent);
+    }
+
+
     /*
         INTENT HANDLING
      */
@@ -795,6 +819,20 @@ public class MainScreen extends AppCompatActivity {
                 }
             }
 
+        } else if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)) {
+
+            // In case we would still use the Tech Discovered Intent
+            tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            String[] techList = tag.getTechList();
+            String searchedTech = Ndef.class.getName();
+
+            for (String tech : techList) {
+                if (searchedTech.equals(tech)) {
+                    new NdefReaderTask().execute(tag);
+                    break;
+                }
+            }
+
         }
 
         /*
@@ -813,6 +851,15 @@ public class MainScreen extends AppCompatActivity {
         if (tag != null) {
             // get NDEF tag details
             Ndef ndefTag = Ndef.get(tag);
+
+            // Check if we could load ndef, if not... then launch new tag creation
+            if ( ndefTag == null )
+            {   // Launch Tag Creation
+                Toast.makeText(ctx, "Tag appears to be empty. Create new Messageboard Tag?" , Toast.LENGTH_LONG ).show();
+                launchNewTagCreation();
+                return;
+            }
+
             tag_size = ndefTag.getMaxSize();         // tag size
             boolean writable = ndefTag.isWritable(); // is tag writable?
             String type = ndefTag.getType();         // tag type
@@ -883,12 +930,24 @@ public class MainScreen extends AppCompatActivity {
         // ::bk:: Ah I see thanks. So just gotta make sure it matches.
         filters[0] = new IntentFilter();
         if (!armed_write_to_empty_tag) {
-            filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
-            filters[0].addCategory(Intent.CATEGORY_DEFAULT);
-            try {
-                filters[0].addDataType(MIME_TEXT_PLAIN);
-            } catch (MalformedMimeTypeException e) {
-                throw new RuntimeException("Check your mime type.");
+
+            if (true)
+            {   // Find all tags
+                filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
+                filters[0].addCategory(Intent.CATEGORY_DEFAULT);
+            }
+            else
+            {   // Find only text tags
+                filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
+                filters[0].addCategory(Intent.CATEGORY_DEFAULT);
+                try
+                {
+                    filters[0].addDataType(MIME_TEXT_PLAIN);
+                }
+                catch (MalformedMimeTypeException e)
+                {
+                    throw new RuntimeException("Check your mime type.");
+                }
             }
         } else {
             filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
@@ -907,6 +966,7 @@ public class MainScreen extends AppCompatActivity {
     public static void stopForegroundDispatch(final Activity activity, NfcAdapter adapter) {
         adapter.disableForegroundDispatch(activity);
     }
+
 
     /*
         MENUS
@@ -928,20 +988,7 @@ public class MainScreen extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.write_new_tag:
-                // Clear display to avoid confusion
-                entry_msg.setText("");
-                /*
-                TODO: updateMainDisplay() crashes on "" or "\n" but not " \n" or more. Fix this...
-                java.lang.StringIndexOutOfBoundsException: length=0; regionStart=0; regionLength=2
-                      at java.lang.String.substring(String.java:1931)
-                      at com.briankhuu.nfcmessageboard.MainScreen.changeLineinView_TITLESTYLE(MainScreen.java:541)
-                */
-                updateMainDisplay(" \n");
-                // Inform user
-                infoDisp.setText("Tap to confirm new tag is working");
-                // Start Tag Creation Activity
-                intent = new Intent(this, TextTagCreation.class);
-                startActivity(intent);
+                launchNewTagCreation();
                 return true;
             case R.id.tagDiagnostics:
                 intent = new Intent(this, TagDiagnostics.class);
