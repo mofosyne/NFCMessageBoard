@@ -33,6 +33,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -53,6 +54,8 @@ public class WritingToTextTag extends AppCompatActivity {
     // Haptic Feedback
     Vibrator vibrator;
 
+    // Status Display
+    public static TextView textView_infoDisp;
 
     // Information that we want to write to the tag
     public enum MessageWriteStatus_Enum {
@@ -104,6 +107,8 @@ public class WritingToTextTag extends AppCompatActivity {
         //setup vibrate
         vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
+        // TextView
+        textView_infoDisp = (TextView) findViewById(R.id.textView_infoDisp);
 
         /* Setup NFC Adapter
         * */
@@ -443,194 +448,206 @@ public class WritingToTextTag extends AppCompatActivity {
 
         int tag_size=0;
 
-        {
-            if ((tag == null))
-            {// Requires tag
-                Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                        +(tag==null ? "tag adapter," : "" )
-                );
-                return;
-            }
+        if ((tag == null))
+        {// Requires tag
+            Log.e( LOGGER_TAG, "setupForegroundDispatch:"
+                    +(tag==null ? "tag adapter," : "" )
+            );
+            textView_infoDisp.setText("tag missing?");
+            return;
+        }
 
-            {// Tag
-                // get NDEF tag details
-                Ndef ndefTag = Ndef.get(tag);
+        {// Tag
+            // get NDEF tag details
+            Ndef ndefTag = Ndef.get(tag);
 
-                if (ndefTag == null)
-                {   // Is not ndef formatted yet. Try to set this new tag up.
-                    Log.d(LOGGER_TAG, "New tag detected. Attempting to format tag.");
+            if (ndefTag == null)
+            {   // Is not ndef formatted yet. Try to set this new tag up.
+                Log.d(LOGGER_TAG, "New tag detected. Attempting to format tag.");
 
-                    NdefMessage emptyNdefMessage = new NdefMessage(new NdefRecord(NdefRecord.TNF_EMPTY, null, null, null));
+                NdefMessage emptyNdefMessage = new NdefMessage(new NdefRecord(NdefRecord.TNF_EMPTY, null, null, null));
 
-                    NdefFormatable formatable = NdefFormatable.get(tag);
-                    if (formatable != null)
+                NdefFormatable formatable = NdefFormatable.get(tag);
+                if (formatable != null)
+                {
+                    try
+                    {
+                        formatable.connect();
+                        formatable.format(emptyNdefMessage);
+                    }
+                    catch (Exception e)
+                    {
+                        // let the user know the tag refused to connect
+                        Log.e(LOGGER_TAG, "Tag Refuse to Connect for formatting");
+                        textView_infoDisp.setText("Tag Refuse to Connect for formatting. Is this tag broken?");
+                        Toast.makeText(ctx, "Tag Refuse to Connect for formatting", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                        return;
+                    }
+                    finally
                     {
                         try
                         {
-                            formatable.connect();
-                            formatable.format(emptyNdefMessage);
+                            formatable.close();
                         }
-                        catch (Exception e)
+                        catch (IOException e)
                         {
-                            // let the user know the tag refused to connect
-                            Log.e(LOGGER_TAG, "Tag Refuse to Connect for formatting");
-                            Toast.makeText(ctx, "Tag Refuse to Connect for formatting", Toast.LENGTH_SHORT).show();
+                            Log.e(LOGGER_TAG, "Cannot close tag while formatting");
+                            textView_infoDisp.setText("Cannot close tag while formatting. Try tapping again.");
+                            Toast.makeText(ctx, "Cannot close tag while formatting", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
                             return;
                         }
-                        finally
-                        {
-                            try
-                            {
-                                formatable.close();
-                            }
-                            catch (IOException e)
-                            {
-                                Log.e(LOGGER_TAG, "Cannot close tag while formatting");
-                                Toast.makeText(ctx, "Cannot close tag while formatting", Toast.LENGTH_SHORT).show();
-                                e.printStackTrace();
-                                return;
-                            }
-                        }
                     }
-                    else
-                    {
-                        // let the user know the tag cannot be formatted
-                        Log.e(LOGGER_TAG, "Cannot format NFC tag. Is not NdefFormatable");
-                        Toast.makeText(ctx, "Cannot format NFC tag. Is not NdefFormatable", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    // let the user know the tag refused to connect
-                    Log.d(LOGGER_TAG, "Tag formatted, please tap again");
-                    Toast.makeText(ctx, "New tag was formatted. Please tap again.", Toast.LENGTH_SHORT).show();
-                    return;
-
                 }
-
-                // Get Tag Size
-                tag_size = ndefTag.getMaxSize();
-                Log.d( LOGGER_TAG, "tagsize:" + Integer.toString(tag_size) );
-
-                // Check Tag Writability (That it is not read only)
-                if (ndefTag.isWritable() != true)
-                {   // Requires tag
-                    Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                            +" Tag Is Not Writable "
-                    );
-                    Toast.makeText(ctx, "Tag was set to read only.", Toast.LENGTH_SHORT ).show();
-                    return;
-                }
-            }
-
-            {// Generate AAR Package Name
-                androidAAR_NdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
-            }
-
-            {// Generate text_NdefRecord (Could we use NdefRecord.createTextRecord() instead?)
-
-                // Input Message String
-                String text = tagContent_input.message_str;
-
-                //  http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
-                final int AAR_RECORD_BYTE_LENGTH = 50;          // Estimated size of the AAR Record Byte, because I have no idea how to find the exact size.
-                final int NDEF_RECORD_HEADER_SIZE = 6;          // Estimated size of NDEF Record Header
-                final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;  // Estimated size of NDEF string payload header size
-
-                // Calc maximum safe text size
-                int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
-                if (text.length() >= maxTagByteLength) { // Write like normal if content to write will fit without modification
-                    // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
-                    text = truncateWhenUTF8(text, maxTagByteLength);
-                }
-
-                // Output Ndef Record
-                try {
-                    text_NdefRecord = createRecord(text);
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            {// Write tag
-                MessageWriteStatus_Enum message_write_status = MessageWriteStatus_Enum.FAILED; // Generic Fail
-
-                if( (text_NdefRecord == null) || (androidAAR_NdefRecord == null) )
+                else
                 {
+                    // let the user know the tag cannot be formatted
+                    Log.e(LOGGER_TAG, "Cannot format NFC tag. Is not NdefFormatable");
+                    textView_infoDisp.setText("Cannot format NFC Tag. Try preformatting this tag with some NDEF content. (NXP TagWriter could help here)");
+                    Toast.makeText(ctx, "Cannot format NFC tag. Is not NdefFormatable", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
+                // Lets vibrate!
+                long[] pattern = {0, 400, 400};
+                vibrator.vibrate(pattern, -1);
 
-                // NdefRecord[] records = { createRecord(text), aarNdefRecord };
-                NdefMessage message = new NdefMessage(new NdefRecord[]{
-                        text_NdefRecord
-                        ,
-                        androidAAR_NdefRecord
-                });
-
-                // Maximum Five Times Retries
-                for (int i=0 ; i < 5 ; i++)
-                {
-                    message_write_status = writeNdefMessageToTag(message,tag,false);
-
-                    Log.d( LOGGER_TAG, "Writing To Tag (attempt: " + Integer.toString(i) + ") Status: " + message_write_status.toString());
-
-                    // Stop Loop as tag was written successfully
-                    if ( message_write_status == MessageWriteStatus_Enum.SUCCESS )
-                        break;  // Write Successful
-
-                    // Tag was lost, no use retrying. (Or you will end up with "java.lang.IllegalStateException: Close other technology first" exception)
-                    if ( message_write_status == MessageWriteStatus_Enum.FAILED_BECAUSE_IO_EXCEPTION )
-                        break;  // Tag Communication Was Lost
-                }
-
-                // Report Status
-                tagContent_input.successfulWrite_status = message_write_status;
-
-                switch (message_write_status) {
-                    case INITIALISE:
-                        Toast.makeText(ctx, "FAILED: Did it not write?", Toast.LENGTH_SHORT ).show();
-                        break;
-                    case SUCCESS:   // Can close display now
-                        //Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
-
-                        // Lets vibrate!
-                        long[] pattern = {0, 200, 200, 200, 200, 200, 200};
-                        vibrator.vibrate(pattern,-1);
-
-                        completed_and_now_returning(true);
-                        break;
-                    case FAILED:    // Prompt user to tap?
-                        Toast.makeText(ctx, "Tag writing failed for unknown reason. Tap again?", Toast.LENGTH_SHORT ).show();
-                        break;
-                    case FAILED_BECAUSE_CONTENT_MISMATCH: // Prompt User to tap again
-                        Toast.makeText(ctx, "Tag content mismatch. Tap again", Toast.LENGTH_SHORT ).show();
-                        break;
-                    case FAILED_BECAUSE_IO_EXCEPTION:   // Exit failed
-                        Toast.makeText(ctx, "Cannot Write To Tag. (type:IO). Try again?", Toast.LENGTH_SHORT ).show();
-                        break;
-                    case FAILED_BECAUSE_FORMAT_EXCEPTION: // Exit failed? (or make sure to write new NDEF?)
-                        Toast.makeText(ctx, "Cannot Write To Tag. (type:Format). Not NDEF formatted?" , Toast.LENGTH_SHORT ).show();
-                        completed_and_now_returning(false);
-                        break;
-                    case FAILED_BECAUSE_TAG_LOST:   // Can't trigger this yet
-                        Toast.makeText(ctx, "Lost connection to tag. Tap again.", Toast.LENGTH_SHORT ).show();
-                        break;
-                    case FAILED_BECAUSE_NULL_NDEF:
-                        Toast.makeText(ctx, "Tag Write Failed: NULL NDEF", Toast.LENGTH_SHORT ).show();
-                        completed_and_now_returning(false);
-                        break;
-                    case FAILED_BECAUSE_INSUFFICIENT_SPACE:
-                        Toast.makeText(ctx, "Cannot Write To Tag. Message is too big", Toast.LENGTH_SHORT ).show();
-                        completed_and_now_returning(false);
-                        break;
-                    case FAILED_BECAUSE_WRITE_PROTECTED:
-                        Toast.makeText(ctx, "Cannot Write To Tag. Tag is Read Only", Toast.LENGTH_SHORT ).show();
-                        completed_and_now_returning(false);
-                        break;
-                }
+                // Let user know that the tag has been formatted
+                Log.d(LOGGER_TAG, "Tag formatted, please tap again");
+                textView_infoDisp.setText("The tag was previously not formatted to the NDEF standard. Now it should be. Tap again to start writing to the tag.");
+                Toast.makeText(ctx, "New tag was formatted. Please tap again.", Toast.LENGTH_SHORT).show();
+                return;
 
             }
+
+            // Get Tag Size
+            tag_size = ndefTag.getMaxSize();
+            Log.d( LOGGER_TAG, "tagsize:" + Integer.toString(tag_size) );
+
+            // Check Tag Writability (That it is not read only)
+            if (ndefTag.isWritable() != true)
+            {   // Requires tag
+                Log.e( LOGGER_TAG, "setupForegroundDispatch:"
+                        +" Tag Is Not Writable "
+                );
+                Toast.makeText(ctx, "Tag was set to read only.", Toast.LENGTH_SHORT ).show();
+                textView_infoDisp.setText("The tag reported that it was sent to read only. Maybe you got a ready only tag? Or something corrupted the tag.");
+                return;
+            }
+        }
+
+        {// Generate AAR Package Name
+            androidAAR_NdefRecord = NdefRecord.createApplicationRecord(arrPackageName);
+        }
+
+        {// Generate text_NdefRecord (Could we use NdefRecord.createTextRecord() instead?)
+
+            // Input Message String
+            String text = tagContent_input.message_str;
+
+            //  http://stackoverflow.com/questions/11427997/android-app-to-add-mutiple-record-in-nfc-tag
+            final int AAR_RECORD_BYTE_LENGTH = 50;          // Estimated size of the AAR Record Byte, because I have no idea how to find the exact size.
+            final int NDEF_RECORD_HEADER_SIZE = 6;          // Estimated size of NDEF Record Header
+            final int NDEF_STRING_PAYLOAD_HEADER_SIZE = 4;  // Estimated size of NDEF string payload header size
+
+            // Calc maximum safe text size
+            int maxTagByteLength = Math.abs(tag_size - NDEF_RECORD_HEADER_SIZE - NDEF_STRING_PAYLOAD_HEADER_SIZE - AAR_RECORD_BYTE_LENGTH);
+            if (text.length() >= maxTagByteLength) { // Write like normal if content to write will fit without modification
+                // Else work out what to remove. For now, just do a dumb trimming. // Unicode characters may take more than 1 byte.
+                text = truncateWhenUTF8(text, maxTagByteLength);
+            }
+
+            // Output Ndef Record
+            try {
+                text_NdefRecord = createRecord(text);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        {// Write tag
+            MessageWriteStatus_Enum message_write_status = MessageWriteStatus_Enum.FAILED; // Generic Fail
+
+            if ((text_NdefRecord == null) || (androidAAR_NdefRecord == null)) {
+                return;
+            }
+
+
+            // NdefRecord[] records = { createRecord(text), aarNdefRecord };
+            NdefMessage message = new NdefMessage(new NdefRecord[]{
+                    text_NdefRecord
+                    ,
+                    androidAAR_NdefRecord
+            });
+
+            // Maximum Five Times Retries
+            for (int i = 0; i < 5; i++) {
+                message_write_status = writeNdefMessageToTag(message, tag, false);
+
+                Log.d(LOGGER_TAG, "Writing To Tag (attempt: " + Integer.toString(i) + ") Status: " + message_write_status.toString());
+
+                // Stop Loop as tag was written successfully
+                if (message_write_status == MessageWriteStatus_Enum.SUCCESS)
+                    break;  // Write Successful
+
+                // Tag was lost, no use retrying. (Or you will end up with "java.lang.IllegalStateException: Close other technology first" exception)
+                if (message_write_status == MessageWriteStatus_Enum.FAILED_BECAUSE_IO_EXCEPTION)
+                    break;  // Tag Communication Was Lost
+            }
+
+            // Report Status
+            tagContent_input.successfulWrite_status = message_write_status;
+
+            switch (message_write_status) {
+                case INITIALISE:
+                    Toast.makeText(ctx, "FAILED: Did it not write?", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("Whoa that's amazing. Din't not expect you would see this :S");
+                    break;
+                case SUCCESS:   // Can close display now
+                    //Toast.makeText(ctx, "Tag content is confirmed written successfully", Toast.LENGTH_SHORT ).show();
+                    textView_infoDisp.setText("All good. Tag is now written. Returning");
+
+                    // Lets vibrate!
+                    long[] pattern = {0, 200, 200, 200, 200, 200, 200};
+                    vibrator.vibrate(pattern, -1);
+
+                    completed_and_now_returning(true);
+                    break;
+                case FAILED:    // Prompt user to tap?
+                    Toast.makeText(ctx, "Tag writing failed for unknown reason. Tap again?", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("Not sure what happened. Try again.");
+                    break;
+                case FAILED_BECAUSE_CONTENT_MISMATCH: // Prompt User to tap again
+                    Toast.makeText(ctx, "Tag content mismatch. Tap again", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("There was a possible write corruption. You should tap again to try and fix this.");
+                    break;
+                case FAILED_BECAUSE_IO_EXCEPTION:   // Exit failed
+                    Toast.makeText(ctx, "Cannot Write To Tag. (type:IO). Try again?", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("There was an IO error. The tag could have been physically misaligned during write. Hold it securely to the phone on the next tap.");
+                    break;
+                case FAILED_BECAUSE_FORMAT_EXCEPTION: // Exit failed? (or make sure to write new NDEF?)
+                    Toast.makeText(ctx, "Cannot Write To Tag. (type:Format). Not NDEF formatted?", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("The tag is not yet formatted. Please preformat your tag to use NDEF.");
+                    break;
+                case FAILED_BECAUSE_TAG_LOST:   // Can't trigger this yet
+                    Toast.makeText(ctx, "Lost connection to tag. Tap again.", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("Connection was lost to the tag. Please tap again. Make sure to hold it more securely.");
+                    break;
+                case FAILED_BECAUSE_NULL_NDEF:
+                    Toast.makeText(ctx, "Tag Write Failed: NULL NDEF", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("NULL NDEF error (not formatted yet?)");
+                    break;
+                case FAILED_BECAUSE_INSUFFICIENT_SPACE:
+                    Toast.makeText(ctx, "Cannot Write To Tag. Message is too big", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("Message is too big for the tag");
+                    break;
+                case FAILED_BECAUSE_WRITE_PROTECTED:
+                    Toast.makeText(ctx, "Cannot Write To Tag. Tag is Read Only", Toast.LENGTH_SHORT).show();
+                    textView_infoDisp.setText("Tag is write protected. You should use a new one.");
+                    break;
+            }
+
         }
 
     }
