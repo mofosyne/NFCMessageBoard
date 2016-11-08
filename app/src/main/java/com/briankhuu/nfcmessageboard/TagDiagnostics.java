@@ -10,8 +10,16 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
+import android.nfc.tech.MifareUltralight;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
+import android.nfc.tech.NfcA;
+import android.nfc.tech.NfcB;
+import android.nfc.tech.NfcBarcode;
+import android.nfc.tech.NfcF;
+import android.nfc.tech.NfcV;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -318,6 +326,43 @@ public class TagDiagnostics extends AppCompatActivity {
 
             diagStr += "\n";
 
+            diagStr += "\n### NFC Tech Driver Support";
+
+            /*********************************************
+             * Enumeratable Check
+             */
+            if (IsoDep.get(tag) != null)
+                diagStr += "\n - Can Enumerate IsoDep";
+
+            if (MifareClassic.get(tag) != null)
+                diagStr += "\n - Can Enumerate MifareClassic";
+
+            if (MifareUltralight.get(tag) != null)
+                diagStr += "\n - Can Enumerate MifareUltralight";
+
+            if (Ndef.get(tag) != null)
+                diagStr += "\n - Can Enumerate Ndef";
+
+            if (NdefFormatable.get(tag) != null)
+                diagStr += "\n - Can Enumerate NdefFormatable";
+
+            if (NfcA.get(tag) != null)
+                diagStr += "\n - Can Enumerate NfcA";
+
+            if (NfcB.get(tag) != null)
+                diagStr += "\n - Can Enumerate NfcB";
+
+            if (NfcBarcode.get(tag) != null)
+                diagStr += "\n - Can Enumerate NfcBarcode";
+
+            if (NfcF.get(tag) != null)
+                diagStr += "\n - Can Enumerate NfcF";
+
+            if (NfcV.get(tag) != null)
+                diagStr += "\n - Can Enumerate NfcV";
+
+            diagStr += "\n";
+
             /*********************************************
              * Display NDEF info
              */
@@ -357,14 +402,17 @@ public class TagDiagnostics extends AppCompatActivity {
                 NdefRecord[] ndefRecords = ndefMesg.getRecords();
 
                 diagStr += "\n - Size of NDEF message (Bytes): " + ndefMesg.getByteArrayLength();
-                diagStr += "\n - Number of NDEF records: " + ndefRecords.length;
                 diagStr += "\n - NDEF records: " + ndefRecords.length;
 
                 // Record
                 for (int i = 0; i < ndefRecords.length; i++) {
-                    diagStr += "\n    * " + ndefRecords[i].getType().toString();
+                    String recTypes = new String(ndefRecords[i].getType());
+                    diagStr += "\n    * " + ndefRecords[i].toString() + " | Record Type: " + recTypes;
                 }
             }
+
+
+
         }
 
         diagStr += "\n";

@@ -58,14 +58,14 @@ public class WritingToTextTag extends AppCompatActivity {
     public enum MessageWriteStatus_Enum {
         INITIALISE,                         //
         SUCCESS,                            // Successfully written into tag
-        FAILED,    // Could probbly just try again.
+        FAILED,                             // Could probbly just try again.
         FAILED_BECAUSE_CONTENT_MISMATCH,    // Could probbly just try again.
         FAILED_BECAUSE_IO_EXCEPTION,
         FAILED_BECAUSE_FORMAT_EXCEPTION,
         FAILED_BECAUSE_TAG_LOST,
         FAILED_BECAUSE_NULL_NDEF,
         FAILED_BECAUSE_INSUFFICIENT_SPACE,
-        message_write_status, FAILED_BECAUSE_WRITE_PROTECTED         // Tag is write protected so just report and quit...
+        FAILED_BECAUSE_WRITE_PROTECTED         // Tag is write protected so just report and quit...
     }
 
     // Information that we want to write to the tag
