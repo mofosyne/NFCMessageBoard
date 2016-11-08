@@ -68,7 +68,11 @@
                 <data android:mimeType="text/html" />
             </intent-filter>
         </activity>
-        <activity android:name=".TagDiagnostics"></activity>
+        <activity android:name=".TagDiagnostics"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize">
+
+            ></activity>
     </application>
 
 </manifest>
