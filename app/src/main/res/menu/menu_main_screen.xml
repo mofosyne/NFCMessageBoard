@@ -4,6 +4,8 @@
 
     <item android:id="@+id/write_new_tag" android:title="Create New Tag"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/tagDiagnostics" android:title="Tag Information"
+        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/readme" android:title="Readme"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/about" android:title="About"

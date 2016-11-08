@@ -943,6 +943,10 @@ public class MainScreen extends AppCompatActivity {
                 intent = new Intent(this, TextTagCreation.class);
                 startActivity(intent);
                 return true;
+            case R.id.tagDiagnostics:
+                intent = new Intent(this, TagDiagnostics.class);
+                startActivity(intent);
+                return true;
             case R.id.about:
                 int versionCode = BuildConfig.VERSION_CODE;
                 String versionName = BuildConfig.VERSION_NAME;

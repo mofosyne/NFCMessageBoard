@@ -26,6 +26,7 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
+import android.nfc.tech.NdefFormatable;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -64,7 +65,7 @@ public class WritingToTextTag extends AppCompatActivity {
         FAILED_BECAUSE_TAG_LOST,
         FAILED_BECAUSE_NULL_NDEF,
         FAILED_BECAUSE_INSUFFICIENT_SPACE,
-        FAILED_BECAUSE_WRITE_PROTECTED         // Tag is write protected so just report and quit...
+        message_write_status, FAILED_BECAUSE_WRITE_PROTECTED         // Tag is write protected so just report and quit...
     }
 
     // Information that we want to write to the tag
@@ -456,10 +457,55 @@ public class WritingToTextTag extends AppCompatActivity {
                 Ndef ndefTag = Ndef.get(tag);
 
                 if (ndefTag == null)
-                {
-                    Log.e( LOGGER_TAG, "not an NFC tag");
-                    Toast.makeText(ctx, "Not an NFC tag. Please try again.", Toast.LENGTH_SHORT ).show();
+                {   // Is not ndef formatted yet. Try to set this new tag up.
+                    Log.d(LOGGER_TAG, "New tag detected. Attempting to format tag.");
+
+                    NdefMessage emptyNdefMessage = new NdefMessage(new NdefRecord(NdefRecord.TNF_EMPTY, null, null, null));
+
+                    NdefFormatable formatable = NdefFormatable.get(tag);
+                    if (formatable != null)
+                    {
+                        try
+                        {
+                            formatable.connect();
+                            formatable.format(emptyNdefMessage);
+                        }
+                        catch (Exception e)
+                        {
+                            // let the user know the tag refused to connect
+                            Log.e(LOGGER_TAG, "Tag Refuse to Connect for formatting");
+                            Toast.makeText(ctx, "Tag Refuse to Connect for formatting", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                            return;
+                        }
+                        finally
+                        {
+                            try
+                            {
+                                formatable.close();
+                            }
+                            catch (IOException e)
+                            {
+                                Log.e(LOGGER_TAG, "Cannot close tag while formatting");
+                                Toast.makeText(ctx, "Cannot close tag while formatting", Toast.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // let the user know the tag cannot be formatted
+                        Log.e(LOGGER_TAG, "Cannot format NFC tag. Is not NdefFormatable");
+                        Toast.makeText(ctx, "Cannot format NFC tag. Is not NdefFormatable", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // let the user know the tag refused to connect
+                    Log.d(LOGGER_TAG, "Tag formatted, please tap again");
+                    Toast.makeText(ctx, "New tag was formatted. Please tap again.", Toast.LENGTH_SHORT).show();
                     return;
+
                 }
 
                 // Get Tag Size
@@ -468,7 +514,7 @@ public class WritingToTextTag extends AppCompatActivity {
 
                 // Check Tag Writability (That it is not read only)
                 if (ndefTag.isWritable() != true)
-                {// Requires tag
+                {   // Requires tag
                     Log.e( LOGGER_TAG, "setupForegroundDispatch:"
                             +" Tag Is Not Writable "
                     );
@@ -591,8 +637,6 @@ public class WritingToTextTag extends AppCompatActivity {
 
     public MessageWriteStatus_Enum writeNdefMessageToTag(NdefMessage message, Tag tag, boolean writeProtect)
     {
-        NdefMessage message_read_check;
-
         try {
             Ndef ndef = Ndef.get(tag);
             if (ndef != null) {
