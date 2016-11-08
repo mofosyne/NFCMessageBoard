@@ -445,7 +445,6 @@ public class WritingToTextTag extends AppCompatActivity {
     {
         NdefRecord text_NdefRecord          = null;
         NdefRecord androidAAR_NdefRecord;
-
         int tag_size=0;
 
         if ((tag == null))
@@ -580,6 +579,7 @@ public class WritingToTextTag extends AppCompatActivity {
                     ,
                     androidAAR_NdefRecord
             });
+
 
             // Maximum Five Times Retries
             for (int i = 0; i < 5; i++) {
