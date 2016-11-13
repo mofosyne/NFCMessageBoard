@@ -307,7 +307,7 @@ public class ReadHtmlTags extends Activity {
             // For html byte array payload, we always assume that it is UTF-8 and we load the whole payload as a string.
 
             // Get the Text
-            return new String(payload, 0, payload.length-1, "UTF-8");
+            return new String(payload, 0, payload.length, "UTF-8");
         }
 
         @Override
