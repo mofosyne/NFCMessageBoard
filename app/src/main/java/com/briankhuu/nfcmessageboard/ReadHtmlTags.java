@@ -29,6 +29,7 @@ public class ReadHtmlTags extends Activity {
     private static final String LOGGER_TAG = WritingToTextTag.class.getSimpleName();
     public static final String MIME_TEXT_PLAIN = "text/plain";
     public static final String MIME_TEXT_HTML = "text/html";
+    public static final String MIME_TEXT_HTML_DEFLATE = "text/html+zip"; // https://dzone.com/articles/how-compress-and-uncompress // http://stackoverflow.com/questions/9209450/convert-zip-byte-to-unzip-byte // http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
 
     WebView myWebView;
 
@@ -144,6 +145,8 @@ public class ReadHtmlTags extends Activity {
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action))
         {
             String type = intent.getType();
+
+            // if plain/html
             if (MIME_TEXT_HTML.equals(type)) {
                 Toast.makeText(this, "Reading Html Tag", Toast.LENGTH_SHORT).show();
                 tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
