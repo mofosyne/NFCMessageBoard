@@ -129,13 +129,29 @@ deaddrop, dead drop, deaddrops, dead drops, nfc message board
 
 # version notes
 
-## V2.3.4
+## -- V3.1.0 --
+Fixed HTML tag loading
+
+## -- V3.1.0 --
+UI changes to open tag creation on empty tag. Also handling formatting of tags that are ndef formattable. Also added technical diagnostics.
+
+## -- V3.0.0 --
+
+Overhaul of the tag writing/creation interface.
+
+Also bonus feature: You can now read NFC tags that encodes a text/html MIME encoded payload.
+
+## -- V2.3.4 --
+
+Adjusting minimum spec to cover those on gingerbread android. Also very minor adjustment to psudomarkdown renderer.
+
+## -- V2.3.4 --
 Adjusted minimum target to gingerbread V2.3.3 , since there are still phones out there that uses it. Might as well see if they can use it, and not to leave them missing out on the fun.
 
-## V2.3.3
+## -- V2.3.3 --
 Fixed the header title not appearing on tag creation, a crash bug, and also added a readme section.
 
-## V2.3.1
+## -- V2.3.1 --
  Basically had to squash a bug within the "psudo markdown" rendering which made it stuck in an infinite loop when reading a tag that lacks a particular symbol.
 
 
