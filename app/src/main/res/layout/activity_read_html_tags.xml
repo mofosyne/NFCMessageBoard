@@ -14,16 +14,7 @@
         android:id="@+id/htmldisp"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="18dp" />
-
-    <TextView
-        android:layout_width="352dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView_taginfo"
-        android:text="TagInfo"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/textView_tagID"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 

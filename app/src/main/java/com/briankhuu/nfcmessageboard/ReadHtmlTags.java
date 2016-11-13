@@ -12,9 +12,13 @@ import android.nfc.tech.Ndef;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +29,8 @@ public class ReadHtmlTags extends Activity {
     private static final String LOGGER_TAG = WritingToTextTag.class.getSimpleName();
     public static final String MIME_TEXT_PLAIN = "text/plain";
     public static final String MIME_TEXT_HTML = "text/html";
+
+    WebView myWebView;
 
     NfcAdapter mNfcAdapter;
     Tag tag;
@@ -41,6 +47,10 @@ public class ReadHtmlTags extends Activity {
     public static TextView tagID_Disp;
     public static TextView tagInfoDisp;
     public int tag_size = 0;
+    public String[] recTypes;
+    public String tag_type;
+    public boolean tag_writable;
+    public int tag_html_payload_size;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -51,7 +61,6 @@ public class ReadHtmlTags extends Activity {
         ctx = this;
 
         // Technical Display
-        tagInfoDisp = (TextView) findViewById(R.id.textView_taginfo);
         tagID_Disp = (TextView) findViewById(R.id.textView_tagID);
 
         // Setting up NFC (You need to have NFC and you need to enable it to use.
@@ -70,6 +79,8 @@ public class ReadHtmlTags extends Activity {
         syncWebView_data(html_value); //Placeholder
         // Grabs and handles intent that just arrived (When the app just opened)
         handleIntent(getIntent());
+
+        WebView myWebView = (WebView) findViewById(R.id.htmldisp);
     }
 
     /**
@@ -79,6 +90,12 @@ public class ReadHtmlTags extends Activity {
         WebView myWebView = (WebView) findViewById(R.id.htmldisp);
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        // height support
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int height = metrics.heightPixels;
+        int width = metrics.widthPixels;
+        myWebView.setLayoutParams(new RelativeLayout.LayoutParams(getResources().getDisplayMetrics().widthPixels, (int) (height * getResources().getDisplayMetrics().density)));
         // zoom support
         webSettings.setBuiltInZoomControls(true);
         webSettings.setSupportZoom(true);
@@ -87,7 +104,6 @@ public class ReadHtmlTags extends Activity {
     }
 
     public void syncWebView_url(String datauriString) {
-        WebView myWebView = (WebView) findViewById(R.id.htmldisp);
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         // zoom support
@@ -148,25 +164,22 @@ public class ReadHtmlTags extends Activity {
             Toast.makeText(this, "Reading Tag Info", Toast.LENGTH_SHORT).show();
             // get NDEF tag details
             Ndef ndefTag = Ndef.get(tag);
-            tag_size = ndefTag.getMaxSize();     // tag size
-            boolean writable = ndefTag.isWritable(); // is tag writable?
-            String type = ndefTag.getType();         // tag type
+
+            tag_writable = ndefTag.isWritable(); // is tag writable?
 
             // get NDEF message details
             NdefMessage ndefMesg = ndefTag.getCachedNdefMessage();
             NdefRecord[] ndefRecords = ndefMesg.getRecords();
             int len = ndefRecords.length;
-            String[] recTypes = new String[len];     // will contain the NDEF record types
+            recTypes = new String[len];     // will contain the NDEF record types
             for (int i = 0; i < len; i++) {
                 recTypes[i] = new String(ndefRecords[i].getType());
             }
 
             // Get Tag ID
             tagID_string = bytesToHex(tag.getId());
-            tagID_Disp.setText("TAG ID: 0x"+tagID_string);
-
-            //display technical info
-            tagInfoDisp.setText("ID: "+ tagID_string +" \nSize: " + tag_size + " \nWrite: " + Boolean.toString(writable) + " \nType: " + type + " \nRecTypes: " + TextUtils.join(",", recTypes));
+            tag_size = ndefTag.getMaxSize();     // tag size
+            tag_type = ndefTag.getType();         // tag type
         }
     }
 
@@ -289,24 +302,21 @@ public class ReadHtmlTags extends Activity {
 
             byte[] payload = record.getPayload();
 
-            // Get the Text Encoding
-            String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
+            tag_html_payload_size = payload.length;
 
-            // Get the Language Code
-            int languageCodeLength = payload[0] & 0063;
-
-            // String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
-            // e.g. "en"
+            // For html byte array payload, we always assume that it is UTF-8 and we load the whole payload as a string.
 
             // Get the Text
-            return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
+            return new String(payload, 0, payload.length-1, "UTF-8");
         }
 
         @Override
         protected void onPostExecute(String result) {
             if (result != null) {
-                Log.e(LOGGER_TAG, "Content" + result);
+                Log.d(LOGGER_TAG, "Content" + result);
                 syncWebView_data(result); //Placeholder
+
+                tagID_Disp.setText("TAG-ID: 0x"+tagID_string+" | bytes-free: "+tag_size+"-"+ tag_html_payload_size + "="+ (tag_size-tag_html_payload_size) );
             }
         }
     } // End of NdefReaderTask
