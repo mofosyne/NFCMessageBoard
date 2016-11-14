@@ -22,24 +22,41 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.util.zip.GZIPInputStream;
 import java.util.Arrays;
 
 public class ReadHtmlTags extends Activity {
-    private static final String LOGGER_TAG = WritingToTextTag.class.getSimpleName();
-    public static final String MIME_TEXT_PLAIN = "text/plain";
-    public static final String MIME_TEXT_HTML = "text/html";
-    public static final String MIME_TEXT_HTML_DEFLATE = "text/html+zip"; // https://dzone.com/articles/how-compress-and-uncompress // http://stackoverflow.com/questions/9209450/convert-zip-byte-to-unzip-byte // http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
 
+
+    public enum CompressionMode_Enum
+    {
+        NONE,
+        GZIP // Deflate Based https://en.wikipedia.org/wiki/Gzip
+    }
+
+
+    private static final String LOGGER_TAG = WritingToTextTag.class.getSimpleName();
+    public static final String MIME_TEXT_HTML = "text/html";
+    public static final String MIME_TEXT_HTML_GZIP = "text/html+gzip"; // http://superuser.com/questions/901962/what-is-the-correct-mime-type-for-a-tar-gz-file
+
+    // Content of the html page to render
+    String html_value = "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"><title>Lorem Ipsum</title></head><body style=\"width:300px; color: #00000; \"><p><strong> About us</strong> </p><p><strong> Lorem Ipsum</strong> is simply dummy text .</p><p><strong> Lorem Ipsum</strong> is simply dummy text </p><p><strong> Lorem Ipsum</strong> is simply dummy text </p></body></html>";
     WebView myWebView;
 
     NfcAdapter mNfcAdapter;
     Tag tag;
+    CompressionMode_Enum tag_compression_mode;
 
     Activity ctx;
-
-    // Content of the html page to render
-    String html_value = "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"><title>Lorem Ipsum</title></head><body style=\"width:300px; color: #00000; \"><p><strong> About us</strong> </p><p><strong> Lorem Ipsum</strong> is simply dummy text .</p><p><strong> Lorem Ipsum</strong> is simply dummy text </p><p><strong> Lorem Ipsum</strong> is simply dummy text </p></body></html>";
 
     /*
         Technical Display
@@ -144,11 +161,26 @@ public class ReadHtmlTags extends Activity {
         // We want to read only valid html tags
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action))
         {
+            boolean mime_type_found = false;
             String type = intent.getType();
 
-            // if plain/html
-            if (MIME_TEXT_HTML.equals(type)) {
+            if (MIME_TEXT_HTML.equals(type))
+            {
                 Toast.makeText(this, "Reading Html Tag", Toast.LENGTH_SHORT).show();
+                tag_compression_mode = CompressionMode_Enum.NONE;
+                mime_type_found = true;
+            }
+            else
+            if (MIME_TEXT_HTML_GZIP.equals(type))
+            {
+                Toast.makeText(this, "Reading Gzipped Html Tag", Toast.LENGTH_SHORT).show();
+                tag_compression_mode = CompressionMode_Enum.GZIP;
+                mime_type_found = true;
+            }
+
+
+            // if plain/html
+            if (mime_type_found) {
                 tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
                 new NdefReaderTask().execute(tag);
             } else {
@@ -164,7 +196,7 @@ public class ReadHtmlTags extends Activity {
             http://stackoverflow.com/questions/9971820/how-to-read-detected-nfc-tag-ndef-content-details-in-android
          */
         if (tag != null) {
-            Toast.makeText(this, "Reading Tag Info", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Reading Tag Info", Toast.LENGTH_SHORT).show();
             // get NDEF tag details
             Ndef ndefTag = Ndef.get(tag);
 
@@ -264,14 +296,17 @@ public class ReadHtmlTags extends Activity {
      * @author Ralf Wondratschek
      *
      */
-    private class NdefReaderTask extends AsyncTask<Tag, Void, String> {
+    private class NdefReaderTask extends AsyncTask<Tag, Void, String>
+    {
 
         @Override
-        protected String doInBackground(Tag... params) {
+        protected String doInBackground(Tag... params)
+        {
             Tag tag = params[0];
 
             Ndef ndef = Ndef.get(tag);
-            if (ndef == null) {
+            if (ndef == null)
+            {
                 // NDEF is not supported by this Tag.
                 return null;
             }
@@ -279,11 +314,16 @@ public class ReadHtmlTags extends Activity {
             NdefMessage ndefMessage = ndef.getCachedNdefMessage();
 
             NdefRecord[] records = ndefMessage.getRecords();
-            for (NdefRecord ndefRecord : records) {
-                if (ndefRecord.getTnf() == NdefRecord.TNF_MIME_MEDIA) {
-                    try {
+            for (NdefRecord ndefRecord : records)
+            {
+                if (ndefRecord.getTnf() == NdefRecord.TNF_MIME_MEDIA)
+                {
+                    try
+                    {
                         return readText(ndefRecord);
-                    } catch (UnsupportedEncodingException e) {
+                    }
+                    catch (UnsupportedEncodingException e)
+                    {
                         Log.e(LOGGER_TAG, "Unsupported Encoding", e);
                     }
                 }
@@ -292,7 +332,8 @@ public class ReadHtmlTags extends Activity {
             return null;
         }
 
-        private String readText(NdefRecord record) throws UnsupportedEncodingException {
+        private String readText(NdefRecord record) throws UnsupportedEncodingException
+        {
         /*
          * See NFC forum specification for "Text Record Type Definition" at 3.2.1
          *
@@ -305,12 +346,48 @@ public class ReadHtmlTags extends Activity {
 
             byte[] payload = record.getPayload();
 
-            tag_html_payload_size = payload.length;
 
-            // For html byte array payload, we always assume that it is UTF-8 and we load the whole payload as a string.
+            switch (tag_compression_mode) {
+                case NONE:
+                {
+                    // For html byte array payload, we always assume that it is UTF-8 and we load the whole payload as a string.
+                    tag_html_payload_size = payload.length;
 
-            // Get the Text
-            return new String(payload, 0, payload.length, "UTF-8");
+                    // Get the Text
+                    return new String(payload, 0, payload.length, "UTF-8");
+                }
+                case GZIP:
+                {   // http://stackoverflow.com/questions/23606047/decompressing-to-a-byte-using-gzipinputstream
+
+                    String uncompressed_string = "";
+                    char[] buffer = new char[10240];
+                    ByteArrayInputStream byte_array_input = new ByteArrayInputStream(payload);
+                    Writer writer = new StringWriter();
+
+                    try
+                    {   // Decompressing Gzip
+                        InputStream ungzippedResponse = new GZIPInputStream(byte_array_input);
+                        InputStreamReader reader = new InputStreamReader(ungzippedResponse, "UTF-8");
+
+                        for (int length ; (length = reader.read(buffer)) > 0 ; )
+                        {
+                            writer.write(buffer, 0, length);
+                        }
+
+                        uncompressed_string = writer.toString();
+
+                    }
+                    catch (IOException e)
+                    {
+                        Toast.makeText(ctx, "GZIP error", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+
+                    return uncompressed_string;
+                }
+            }
+
+            return "";
         }
 
         @Override
