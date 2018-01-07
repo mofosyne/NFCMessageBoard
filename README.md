@@ -138,8 +138,6 @@ deaddrop, dead drop, deaddrops, dead drops, nfc message board
 
 # version notes
 
-
-
 ## -- V3.3--
 Update project IDE version, also enable reading of `text/html+gzip` mime record NFC tags.
 
