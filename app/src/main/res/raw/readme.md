@@ -27,7 +27,16 @@ There is even an entry on it in n-o-d-e net magazine: http://n-o-d-e.net/post/11
 - Message text are selectable
 - You can bold text via markdown style `**bold**`
 
-- Bonus: Can now also read NFC tags with embedded html pages encoded as "text/html" MIME payload.
+### Bonus
+
+You can also read specially formatted NFC tags with plain or gzipped compressed html MIME payloads
+
+* `text/html`
+* `text/html+gzip`
+
+Tool to generate these tags:
+https://github.com/mofosyne/js-ndef-html-tag
+
 
 ## Wishlist:
 
@@ -71,14 +80,14 @@ Like: *italic* **bold** ***bold_italic***
 
 ## codes
 here is inline `literal` codes. Must have space around it.
-    
+
     ```
     codeblocks
     Good for ascii art
     ```
-    
-        Or 4 space code indent like classic markdown. 
-    
+
+        Or 4 space code indent like classic markdown.
+
 ```
 
 ## How to contribute:
@@ -115,7 +124,7 @@ It doesn't work on empty tags, you need to at least seed it with a plain text NF
 
 - Credit Card Size (85.60�53.98 mm) (Contains information about installing this app):
  - http://i.imgur.com/KLFgqL7.jpg
- 
+
 - Couple more like pdf sheets etc... https://github.com/mofosyne/NFCMessageBoard/tree/master/app/src/Artwork
 
 
@@ -128,6 +137,15 @@ deaddrop, dead drop, deaddrops, dead drops, nfc message board
 
 
 # version notes
+
+
+
+## -- V3.3--
+Update project IDE version, also enable reading of `text/html+gzip` mime record NFC tags.
+
+Also started a sister project to create html tags that can be read by this app.
+
+https://github.com/mofosyne/js-ndef-html-tag
 
 ## -- V3.1.0 --
 Fixed HTML tag loading

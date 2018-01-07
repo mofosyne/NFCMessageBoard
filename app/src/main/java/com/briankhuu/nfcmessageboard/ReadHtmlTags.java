@@ -17,10 +17,15 @@ import android.util.Log;
 import android.view.Display;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebChromeClient;
+import android.webkit.WebViewClient;
+
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -99,6 +104,9 @@ public class ReadHtmlTags extends Activity {
         handleIntent(getIntent());
 
         WebView myWebView = (WebView) findViewById(R.id.htmldisp);
+        myWebView.setWebChromeClient(new WebChromeClient());
+        myWebView.setWebViewClient(new WebViewClient());
+        myWebView.getSettings().setJavaScriptEnabled(true);
     }
 
     /**
@@ -107,7 +115,6 @@ public class ReadHtmlTags extends Activity {
     public void syncWebView_data(String htmlcontent) {
         WebView myWebView = (WebView) findViewById(R.id.htmldisp);
         WebSettings webSettings = myWebView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
         // height support
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -123,13 +130,13 @@ public class ReadHtmlTags extends Activity {
 
     public void syncWebView_url(String datauriString) {
         WebSettings webSettings = myWebView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
         // zoom support
         webSettings.setBuiltInZoomControls(true);
         webSettings.setSupportZoom(true);
         //myWebView.setInitialScale(1);
         myWebView.loadUrl(datauriString);
     }
+
     /****
      *  Deal with NFC loading
      */
@@ -191,6 +198,7 @@ public class ReadHtmlTags extends Activity {
         {
             Log.e(LOGGER_TAG, "Skipping Tag as it is not NDEF");
         }
+
         /*
             So some useful tag info
             http://stackoverflow.com/questions/9971820/how-to-read-detected-nfc-tag-ndef-content-details-in-android

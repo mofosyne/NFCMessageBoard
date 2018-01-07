@@ -2,15 +2,15 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "com.briankhuu.nfcmessageboard"
         /*minSdkVersion 16*/
         minSdkVersion 10
         targetSdkVersion 22
-        versionCode 16
-        versionName "3.2"
+        versionCode 17
+        versionName "3.3"
     }
     buildTypes {
         release {

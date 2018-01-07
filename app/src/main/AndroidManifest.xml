@@ -58,14 +58,16 @@
         </activity>
         <activity android:name=".TextTagCreation" />
         <activity android:name=".ReadHtmlTags">
-
             <!-- We want to autodetect NDEF text -->
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="text/html" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/html+gzip" />
             </intent-filter>
         </activity>
         <activity android:name=".TagDiagnostics"
