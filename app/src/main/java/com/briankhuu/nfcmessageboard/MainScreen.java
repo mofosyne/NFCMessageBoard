@@ -26,6 +26,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 //import android.util.Log;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -865,6 +866,13 @@ public class MainScreen extends AppCompatActivity {
 
             // get NDEF message details
             NdefMessage ndefMesg = ndefTag.getCachedNdefMessage();
+            if ( ndefMesg == null )
+            {
+                Toast.makeText(ctx, "Tag is formatted to support NDEF but has no message yet" , Toast.LENGTH_LONG ).show();
+                Log.e( this.getLocalClassName(), "handleIntent:"+"Tag is formatted to support NDEF but has no message yet");
+                return;
+            }
+
             NdefRecord[] ndefRecords = ndefMesg.getRecords();
             int len = ndefRecords.length;
             String[] recTypes = new String[len];     // will contain the NDEF record types
@@ -1048,6 +1056,9 @@ public class MainScreen extends AppCompatActivity {
             }
 
             NdefMessage ndefMessage = ndef.getCachedNdefMessage();
+            if (ndefMessage == null) {
+                return null;
+            }
 
             NdefRecord[] records = ndefMessage.getRecords();
             for (NdefRecord ndefRecord : records) {

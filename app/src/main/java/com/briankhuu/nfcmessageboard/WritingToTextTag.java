@@ -265,18 +265,9 @@ public class WritingToTextTag extends AppCompatActivity {
      * */
 
     @Override
-    protected void onNewIntent(Intent intent)
-    {   // This is called upon new incoming intent. In this context an NFC tag is being processed
-
-        // Guard
-        if (intent == null)
-        {
-            Log.e( LOGGER_TAG,  "onNewIntent:"
-                        +(intent==null?"null intent,":"")
-                        );
-            return;
-        }
-
+    protected void onNewIntent(Intent intent) {
+        // This is called upon new incoming intent. In this context an NFC tag is being processed
+        super.onNewIntent(intent);
         handle_NfcAdapter_Intent(intent);
     }
 
@@ -292,17 +283,14 @@ public class WritingToTextTag extends AppCompatActivity {
         // Guard
         if ((activity == null)||(adapter == null))
         {
-            Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                            +(activity==null?"null activity,":"")
-                            +(adapter==null?"null adapter,":"" )
-                            );
+            Log.e( LOGGER_TAG, "setupForegroundDispatch:" + (activity==null?"null activity,":"") + (adapter==null?"null adapter,":"" ) );
             return;
         }
 
         // Set up Intent
         intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         // Setting Up Intent Filter And Tech List
         IntentFilter[]  filters     = new IntentFilter[1];
@@ -315,7 +303,6 @@ public class WritingToTextTag extends AppCompatActivity {
 
         // Start the Dispatch
         adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
-
     }
 
     /**
@@ -352,22 +339,25 @@ public class WritingToTextTag extends AppCompatActivity {
     // TODO: Some way to auto verify and rewrite if tag verification fails
     private void handle_NfcAdapter_Intent(Intent intent)
     {   // Handles any incoming NFC Adapter based intent
+        if (!NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: Incoming intent is not ACTION_NDEF_DISCOVERED ");
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: intent.getAction() = " + intent.getAction());
+            return;
+        }
+
+        Log.i(LOGGER_TAG, "handle_NfcAdapter_Intent: ACTION_NDEF_DISCOVERED incoming");
 
         //  Get NFC Tag Content (returns null if not present)
         tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-        if(tag==null)
-        {  // We expect that a tag has been detected
-            Log.e( LOGGER_TAG, "handle_NfcAdapter_Intent:"
-                    +"Intent Extra NfcAdapter.EXTRA_TAG Missing"
-            );
+        if (tag == null) {  // We expect that a tag has been detected
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: Intent Extra NfcAdapter.EXTRA_TAG Missing");
             return;
         }
 
-        Log.d( LOGGER_TAG, "Writing tag");
+        Log.d(LOGGER_TAG, "Writing tag");
 
-        writeMessageTag(this.tagContent,tag);
-
+        writeMessageTag(this.tagContent, tag);
         return;
     }
 
