@@ -1,7 +1,7 @@
 package com.briankhuu.nfcmessageboard;
 
 import android.graphics.Typeface;
-import android.support.v7.app.ActionBarActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.style.ForegroundColorSpan;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class ReadMe extends ActionBarActivity {
+public class ReadMe extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

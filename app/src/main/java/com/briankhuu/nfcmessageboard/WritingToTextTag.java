@@ -28,17 +28,16 @@ import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.os.Vibrator;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.concurrent.ThreadLocalRandom;
+import java.nio.charset.StandardCharsets;
 
 public class WritingToTextTag extends AppCompatActivity {
     static String arrPackageName = "com.briankhuu.nfcmessageboard";
@@ -55,7 +54,7 @@ public class WritingToTextTag extends AppCompatActivity {
     Vibrator vibrator;
 
     // Status Display
-    public static TextView textView_infoDisp;
+    public TextView textView_infoDisp;
 
     // Information that we want to write to the tag
     public enum MessageWriteStatus_Enum {
@@ -79,7 +78,7 @@ public class WritingToTextTag extends AppCompatActivity {
 
 
     // Deals with tag instances
-    public class TagContent {
+    public static class TagContent {
         MessageWriteStatus_Enum successfulWrite_status = MessageWriteStatus_Enum.INITIALISE;
         MessageMode_Enum message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
         String message_str = "";
@@ -89,7 +88,7 @@ public class WritingToTextTag extends AppCompatActivity {
 
     /***********************************************************************************************
      * Activity Lifecycle
-     * https://developer.android.com/reference/android/app/Activity.html
+     * <a href="https://developer.android.com/reference/android/app/Activity.html">...</a>
      */
 
     @Override
@@ -108,7 +107,7 @@ public class WritingToTextTag extends AppCompatActivity {
         vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         // TextView
-        textView_infoDisp = (TextView) findViewById(R.id.textView_infoDisp);
+        textView_infoDisp = findViewById(R.id.textView_infoDisp);
 
         /* Setup NFC Adapter
         * */
@@ -136,14 +135,10 @@ public class WritingToTextTag extends AppCompatActivity {
         String message_tag_type_str = getIntent().getStringExtra("tag_type");
 
         if (message_tag_type_str == null) {   // No intent was detected. Provide default content (good for testing)
-            int random_number = ThreadLocalRandom.current().nextInt(0, 1000 + 1);
-
             // Load in default test content
             this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
-            this.tagContent.message_str = "This is an example text content to be included into this tag (" + Integer.toString(random_number) + ")";
-
+            this.tagContent.message_str = "This is an example text content to be included into this tag)";
         } else {   // Activity Intent Is Present
-
             // Load in content from incoming activity intent
             if (message_tag_type_str.equals("txt"))
                 this.tagContent.message_mode = MessageMode_Enum.SIMPLE_TXT_MODE;
@@ -152,7 +147,6 @@ public class WritingToTextTag extends AppCompatActivity {
 
             // fill in the intent with message that the user want to write to the tag
             this.tagContent.message_str = getIntent().getStringExtra("tag_content");
-
         }
 
 
@@ -160,15 +154,12 @@ public class WritingToTextTag extends AppCompatActivity {
         * */
 
         // Cancel Button
-        final Button button_write_tag = (Button) findViewById(R.id.button_cancel);
+        final Button button_write_tag = findViewById(R.id.button_cancel);
         button_write_tag.setOnClickListener(
-                new View.OnClickListener()
-                {
-                    public void onClick(View v) {
-                        completed_and_now_returning(false); // Return write tag failed
-                    }
+                v -> {
+                    completed_and_now_returning(false); // Return write tag failed
                 }
-            );
+        );
 
 
 
@@ -212,13 +203,11 @@ public class WritingToTextTag extends AppCompatActivity {
         super.onDestroy();
     }
 
-    /**********************************************************************************************/
-
 
     /***********************************************************************************************
      * Report Success or Failure to Write to parent app
-     * e.g. http://stackoverflow.com/questions/22553672/android-startactivityforresult-setresult-for-a-view-class-and-an-activity-cla#22554156
-     * e.g. https://developer.android.com/reference/android/app/Activity.html
+     * e.g. <a href="http://stackoverflow.com/questions/22553672/android-startactivityforresult-setresult-for-a-view-class-and-an-activity-cla#22554156">...</a>
+     * e.g. <a href="https://developer.android.com/reference/android/app/Activity.html">...</a>
      */
     protected void completed_and_now_returning(boolean write_successful)
     {
@@ -265,18 +254,9 @@ public class WritingToTextTag extends AppCompatActivity {
      * */
 
     @Override
-    protected void onNewIntent(Intent intent)
-    {   // This is called upon new incoming intent. In this context an NFC tag is being processed
-
-        // Guard
-        if (intent == null)
-        {
-            Log.e( LOGGER_TAG,  "onNewIntent:"
-                        +(intent==null?"null intent,":"")
-                        );
-            return;
-        }
-
+    protected void onNewIntent(Intent intent) {
+        // This is called upon new incoming intent. In this context an NFC tag is being processed
+        super.onNewIntent(intent);
         handle_NfcAdapter_Intent(intent);
     }
 
@@ -292,17 +272,14 @@ public class WritingToTextTag extends AppCompatActivity {
         // Guard
         if ((activity == null)||(adapter == null))
         {
-            Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                            +(activity==null?"null activity,":"")
-                            +(adapter==null?"null adapter,":"" )
-                            );
+            Log.e( LOGGER_TAG, "setupForegroundDispatch:" + (activity==null?"null activity,":"") + (adapter==null?"null adapter,":"" ) );
             return;
         }
 
         // Set up Intent
         intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
 
         // Setting Up Intent Filter And Tech List
         IntentFilter[]  filters     = new IntentFilter[1];
@@ -315,7 +292,6 @@ public class WritingToTextTag extends AppCompatActivity {
 
         // Start the Dispatch
         adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
-
     }
 
     /**
@@ -339,12 +315,6 @@ public class WritingToTextTag extends AppCompatActivity {
     }
 
 
-    private void resetForegroundDispatch()
-    {   // Foreground Dispatch Reset
-        stopForegroundDispatch(this, mNfcAdapter);
-        setupForegroundDispatch(this, mNfcAdapter);
-    }
-
     /***********************************************************************************************
      *  INTENT HANDLING
      */
@@ -352,23 +322,28 @@ public class WritingToTextTag extends AppCompatActivity {
     // TODO: Some way to auto verify and rewrite if tag verification fails
     private void handle_NfcAdapter_Intent(Intent intent)
     {   // Handles any incoming NFC Adapter based intent
+        if (!NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())
+            && !NfcAdapter.ACTION_TECH_DISCOVERED.equals(intent.getAction())
+                && !NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())
+        ) {
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: Incoming intent is not ACTION_NDEF_DISCOVERED ");
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: intent.getAction() = " + intent.getAction());
+            return;
+        }
+
+        Log.i(LOGGER_TAG, "handle_NfcAdapter_Intent: ACTION_NDEF_DISCOVERED incoming");
 
         //  Get NFC Tag Content (returns null if not present)
         tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-        if(tag==null)
-        {  // We expect that a tag has been detected
-            Log.e( LOGGER_TAG, "handle_NfcAdapter_Intent:"
-                    +"Intent Extra NfcAdapter.EXTRA_TAG Missing"
-            );
+        if (tag == null) {  // We expect that a tag has been detected
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: Intent Extra NfcAdapter.EXTRA_TAG Missing");
             return;
         }
 
-        Log.d( LOGGER_TAG, "Writing tag");
+        Log.d(LOGGER_TAG, "Writing tag");
 
-        writeMessageTag(this.tagContent,tag);
-
-        return;
+        writeMessageTag(this.tagContent, tag);
     }
 
 
@@ -386,7 +361,7 @@ public class WritingToTextTag extends AppCompatActivity {
         //create the message in according with the standard
         String lang = "en";
         byte[] textBytes = text.getBytes();
-        byte[] langBytes = lang.getBytes("US-ASCII");
+        byte[] langBytes = lang.getBytes(StandardCharsets.US_ASCII);
         byte[] payload;
         int langLength = langBytes.length;
         int textLength = textBytes.length;
@@ -400,8 +375,7 @@ public class WritingToTextTag extends AppCompatActivity {
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
 
         // Return NDEF Record
-        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
-        return recordNFC;
+        return new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
     }
 
     // http://stackoverflow.com/questions/119328/how-do-i-truncate-a-java-string-to-fit-in-a-given-number-of-bytes-once-utf-8-en
@@ -445,13 +419,11 @@ public class WritingToTextTag extends AppCompatActivity {
     {
         NdefRecord text_NdefRecord          = null;
         NdefRecord androidAAR_NdefRecord;
-        int tag_size=0;
+        int tag_size;
 
         if ((tag == null))
         {// Requires tag
-            Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                    +(tag==null ? "tag adapter," : "" )
-            );
+            Log.e( LOGGER_TAG, "setupForegroundDispatch: tag adapter " );
             textView_infoDisp.setText("tag missing?");
             return;
         }
@@ -481,7 +453,6 @@ public class WritingToTextTag extends AppCompatActivity {
                         textView_infoDisp.setText("Tag Refuse to Connect for formatting. Is this tag broken?");
                         Toast.makeText(ctx, "Tag Refuse to Connect for formatting", Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
-                        return;
                     }
                     finally
                     {
@@ -495,7 +466,6 @@ public class WritingToTextTag extends AppCompatActivity {
                             textView_infoDisp.setText("Cannot close tag while formatting. Try tapping again.");
                             Toast.makeText(ctx, "Cannot close tag while formatting", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
-                            return;
                         }
                     }
                 }
@@ -525,11 +495,9 @@ public class WritingToTextTag extends AppCompatActivity {
             Log.d( LOGGER_TAG, "tagsize:" + Integer.toString(tag_size) );
 
             // Check Tag Writability (That it is not read only)
-            if (ndefTag.isWritable() != true)
+            if (!ndefTag.isWritable())
             {   // Requires tag
-                Log.e( LOGGER_TAG, "setupForegroundDispatch:"
-                        +" Tag Is Not Writable "
-                );
+                Log.e( LOGGER_TAG, "setupForegroundDispatch: Tag Is Not Writable ");
                 Toast.makeText(ctx, "Tag was set to read only.", Toast.LENGTH_SHORT ).show();
                 textView_infoDisp.setText("The tag reported that it was sent to read only. Maybe you got a ready only tag? Or something corrupted the tag.");
                 return;
@@ -585,7 +553,7 @@ public class WritingToTextTag extends AppCompatActivity {
             for (int i = 0; i < 5; i++) {
                 message_write_status = writeNdefMessageToTag(message, tag, false);
 
-                Log.d(LOGGER_TAG, "Writing To Tag (attempt: " + Integer.toString(i) + ") Status: " + message_write_status.toString());
+                Log.d(LOGGER_TAG, "Writing To Tag (attempt: " + i + ") Status: " + message_write_status.toString());
 
                 // Stop Loop as tag was written successfully
                 if (message_write_status == MessageWriteStatus_Enum.SUCCESS)
@@ -671,7 +639,7 @@ public class WritingToTextTag extends AppCompatActivity {
 
                 ndef.writeNdefMessage(message); // ( Throws: FormatException )
 
-                if ( writeProtect ==  true ) // Uses Boolean instead of boolean for nullable boolean value
+                if ( writeProtect ) // Uses Boolean instead of boolean for nullable boolean value
                 {
                     Toast.makeText(ctx, "Setting Tag to Write Only", Toast.LENGTH_SHORT ).show();
                     ndef.makeReadOnly();
