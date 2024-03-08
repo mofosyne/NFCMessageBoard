@@ -261,7 +261,7 @@ public class ReadHtmlTags extends Activity {
         // Set up Intent
         intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         // Setting Up Intent Filter And Tech List
         IntentFilter[]  filters     = new IntentFilter[1];
