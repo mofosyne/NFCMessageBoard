@@ -181,7 +181,7 @@ public class TagDiagnostics extends AppCompatActivity {
         // Set up Intent
         intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
 
         // Setting Up Intent Filter And Tech List
         IntentFilter[]  filters     = new IntentFilter[1];
@@ -232,25 +232,29 @@ public class TagDiagnostics extends AppCompatActivity {
     // TODO: Some way to auto verify and rewrite if tag verification fails
     private void handle_NfcAdapter_Intent(Intent intent)
     {   // Handles any incoming NFC Adapter based intent
-
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
-            Log.i( LOGGER_TAG, "handle_NfcAdapter_Intent: ACTION_NDEF_DISCOVERED incoming");
-
-            //  Get NFC Tag Content (returns null if not present)
-            tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-
-            if(tag==null)
-            {  // We expect that a tag has been detected, if not then don't process this intent.
-                Log.e( LOGGER_TAG, "handle_NfcAdapter_Intent:"
-                        +"Intent Extra NfcAdapter.EXTRA_TAG Missing"
-                );
-                return;
-            }
-
-            display_tag_diagnostics(intent);
+        if (!NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())
+                && !NfcAdapter.ACTION_TECH_DISCOVERED.equals(intent.getAction())
+                && !NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())
+        ) {
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: Incoming intent is not ACTION_NDEF_DISCOVERED ");
+            Log.e(LOGGER_TAG, "handle_NfcAdapter_Intent: intent.getAction() = " + intent.getAction());
             return;
         }
 
+        Log.i( LOGGER_TAG, "handle_NfcAdapter_Intent: ACTION_NDEF_DISCOVERED incoming");
+
+        //  Get NFC Tag Content (returns null if not present)
+        tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
+        if(tag==null)
+        {  // We expect that a tag has been detected, if not then don't process this intent.
+            Log.e( LOGGER_TAG, "handle_NfcAdapter_Intent:"
+                    +"Intent Extra NfcAdapter.EXTRA_TAG Missing"
+            );
+            return;
+        }
+
+        display_tag_diagnostics(intent);
         return;
     }
 

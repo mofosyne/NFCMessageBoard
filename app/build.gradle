@@ -1,18 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
-
     buildFeatures {
         buildConfig true
     }
 
     defaultConfig {
         applicationId "com.briankhuu.nfcmessageboard"
-        minSdkVersion 16
-        targetSdkVersion 33
+        minSdkVersion 19
+        targetSdkVersion 34
         versionCode 17
         versionName "3.3"
+        compileSdk 34
 
         //Required for our library version retrieval to work as of Android Studio 4.1.0: https://issuetracker.google.com/issues/158695880
         buildConfigField 'int', 'VERSION_CODE', "${project.android_version_code}"
